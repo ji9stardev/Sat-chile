@@ -108,7 +108,7 @@ async def fake_container(settings: Settings) -> Container:
 
 def make_settings(**overrides: object) -> Settings:
     base: dict[str, object] = {"reporter_hash_secret": "test-secret", "monitor_interval_min": 0}
-    return Settings(**{**base, **overrides})  # type: ignore[arg-type]
+    return Settings(_env_file=None, **{**base, **overrides})  # type: ignore[arg-type,call-arg]  # sin el .env local
 
 
 @pytest.fixture

@@ -6,7 +6,7 @@ import asyncio
 
 from src.application.dto import Clock, MapLayers, MapSafePoint, MapWatercourse, MapZone
 from src.domain.entities.base import utc_now
-from src.domain.entities.watercourse import WatercourseKind
+from src.domain.entities.watercourse import Watercourse
 from src.domain.repositories import AlertRepository, GeoZoneRepository, SafePointRepository, WatercourseRepository
 from src.domain.value_objects.risk_level import RiskLevel
 
@@ -31,13 +31,11 @@ class GetMapLayersUseCase:
 
     async def execute(self) -> MapLayers:
         now = self._clock()
-        # El mapa general sólo dibuja ríos (pocos cientos); esteros, quebradas y canales
-        # —miles— se entregan en el diagnóstico GPS, sólo los cercanos al usuario.
-        zones, courses, points = await asyncio.gather(
-            self._zones.list_all(),
-            self._watercourses.list_by_kinds([WatercourseKind.RIO]),
-            self._safe_points.list_all(),
-        )
+        # Los cauces NO van en el mapa general: con la red de todo Chile (miles de ríos y
+        # decenas de miles de esteros) no cabe en la memoria de un servidor pequeño. Cada
+        # usuario recibe los cauces cercanos a su punto en el diagnóstico GPS.
+        zones, points = await asyncio.gather(self._zones.list_all(), self._safe_points.list_all())
+        courses: tuple[Watercourse, ...] = ()
         alert_lists = await asyncio.gather(*(self._alerts.find_active_by_zone(z.id, now) for z in zones))
         return MapLayers(
             generated_at=now,

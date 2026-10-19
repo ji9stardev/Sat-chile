@@ -316,6 +316,12 @@ def localities_to_json(localities: Sequence[Locality]) -> list[list[Any]]:
     return [[x.name, x.kind.value, round(x.location.latitude, 5), round(x.location.longitude, 5)] for x in localities]
 
 
+@lru_cache(maxsize=1)
+def chile_localities() -> tuple[Locality, ...]:
+    """Localidades de todo Chile cargadas una sola vez (las comparten la búsqueda y el diagnóstico)."""
+    return tuple(load_localities())
+
+
 def load_localities(data_dir: Path = DATA_DIR) -> list[Locality]:
     localities: list[Locality] = []
     for path in sorted(data_dir.glob("localidades_*.json")):

@@ -51,7 +51,7 @@ from src.infrastructure.geodata import (
     InMemoryEmergencyServiceFinder,
     InMemoryLocalityFinder,
     chile_comunas,
-    load_localities,
+    chile_localities,
     load_municipal_phones,
     load_services,
 )
@@ -150,7 +150,7 @@ async def build_container(settings: Settings) -> Container:
             ensemble=meteo,
             services=InMemoryEmergencyServiceFinder(load_services()),
             municipal_phones=load_municipal_phones(),
-            localities=InMemoryLocalityFinder(load_localities()),
+            localities=InMemoryLocalityFinder(chile_localities()),
             official=senapred,
         ),
         process_crowdsourcing=ProcessCrowdsourcingUseCase(

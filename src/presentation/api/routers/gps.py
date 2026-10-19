@@ -18,7 +18,7 @@ from src.application.use_cases import (
 )
 from src.domain.value_objects.coordinates import Coordinates
 from src.infrastructure.exceptions import ExternalServiceError, WeatherDataUnavailableError
-from src.infrastructure.geodata import InMemoryRefugeFinder, PlaceIndex, chile_comunas, chile_refuges, load_localities
+from src.infrastructure.geodata import InMemoryRefugeFinder, PlaceIndex, chile_comunas, chile_refuges, chile_localities
 from src.presentation.api.dependencies import get_evaluate_gps_risk, get_region_overview, get_windy_study
 
 router = APIRouter(prefix="/api", tags=["Diagnóstico GPS"])
@@ -26,7 +26,7 @@ router = APIRouter(prefix="/api", tags=["Diagnóstico GPS"])
 
 @lru_cache(maxsize=1)
 def get_place_index() -> PlaceIndex:
-    return PlaceIndex(chile_comunas(), load_localities())
+    return PlaceIndex(chile_comunas(), chile_localities())
 
 
 @router.get(
