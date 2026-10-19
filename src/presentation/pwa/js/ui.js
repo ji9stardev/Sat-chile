@@ -491,16 +491,22 @@ export function renderRegion(overview, { myComuna = null, offline = false, saved
     $('region-list').replaceChildren();
     return;
   }
-  const alerted = overview.comunas.filter((c) => c.level !== 'VERDE').length;
+  const count = (level) => overview.comunas.filter((c) => c.level === level).length;
+  const byLevel = ['ROJO', 'NARANJA', 'AMARILLO']
+    .map((level) => [count(level), LEVELS[level]?.word?.toLowerCase() ?? level.toLowerCase()])
+    .filter(([n]) => n)
+    .map(([n, word]) => `${n} en ${word}`);
   const stormy = overview.comunas.filter((c) => c.storm).length;
   $('region-title').textContent = `Comunas de ${overview.region}`;
   $('region-sub').textContent =
-    `${overview.comunas.length} comunas · ${alerted ? `${alerted} con alerta` : 'todas en verde'}` +
+    `${overview.comunas.length} comunas · ${byLevel.length ? byLevel.join(', ') : 'todas en verde'}` +
     (stormy ? ` · ${stormy} con tormenta posible` : '') +
     (offline ? ` · guardado ${savedAt ? formatTime(savedAt) : ''}` : '');
   $('region-list').replaceChildren(
     ...overview.comunas.map((c) => {
-      const notes = [`${mm(c.rain_mm)} en 24 h`];
+      const notes = [];
+      if (c.official_level) notes.push(`SENAPRED: ${(OFFICIAL_WORDS[c.official_level] ?? c.official_level).toLowerCase()} por ${c.official_hazard?.toLowerCase() ?? 'emergencia'}`);
+      notes.push(`${mm(c.rain_mm)} en 24 h`);
       if (c.max_hourly_mm >= 10) notes.push(`chubasco de ${num(c.max_hourly_mm)} mm/h`);
       if (c.storm) notes.push('tormenta posible');
       if (c.snow) notes.push('nieva en altura');

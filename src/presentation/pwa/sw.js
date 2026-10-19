@@ -9,7 +9,7 @@
  *  - Resto de /api/*: siempre red (un diagnóstico viejo no debe parecer actual).
  */
 
-const VERSION = 'v2.9.1';
+const VERSION = 'v2.9.2';
 const STATIC_CACHE = `sat-maule-static-${VERSION}`;
 const DATA_CACHE = 'sat-maule-data';
 const TILE_CACHE = 'sat-maule-tiles';

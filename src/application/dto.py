@@ -198,6 +198,9 @@ class ComunaOutlook(_DTO):
     storm: bool = False
     snow: bool = False
     """La isoterma está baja: en altura cae nieve y no corre agua."""
+    official_level: OfficialLevel | None = None
+    """Alerta de SENAPRED más alta que rige en la comuna (por nombre o para toda la región)."""
+    official_hazard: str | None = None
 
 
 class RegionOverview(_DTO):

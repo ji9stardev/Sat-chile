@@ -167,7 +167,7 @@ async def build_container(settings: Settings) -> Container:
             ensemble=meteo,
             watercourses=watercourses,
         ),
-        region_overview=RegionOverviewUseCase(areas=chile_comunas(), provider=meteo),
+        region_overview=RegionOverviewUseCase(areas=chile_comunas(), provider=meteo, official=senapred),
         windy_study=WindyStudyUseCase(windy),
         health_check=health,
         closers=[close_mongo, meteo.aclose, *([windy.aclose] if windy else [])],

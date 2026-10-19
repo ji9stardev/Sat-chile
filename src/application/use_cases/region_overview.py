@@ -1,20 +1,24 @@
-"""Vista regional: nivel por lluvia de todas las comunas de una región.
+"""Vista regional: nivel de todas las comunas de una región.
 
 Es un panorama para comparar comunas, no el diagnóstico personal: usa un solo
-modelo meteorológico y sólo los umbrales de lluvia (no cauces ni pendiente).
+modelo meteorológico y los umbrales de lluvia (no cauces ni pendiente), y
+encima las alertas vigentes de SENAPRED, que mandan sobre el cálculo propio.
 """
 
 from __future__ import annotations
 
 import time
+import unicodedata
 from collections.abc import Callable, Sequence
 from datetime import UTC, datetime
 
 from src.application.dto import ComunaOutlook, RegionOverview
+from src.domain.repositories.official_alert_provider import OfficialAlertProvider
 from src.domain.repositories.weather_provider import AreaOutlookProvider
 from src.domain.services.regional_thresholds import THRESHOLDS, rain_level
 from src.domain.value_objects.admin_area import AdminArea
 from src.domain.value_objects.forecast import PointOutlook
+from src.domain.value_objects.official_alert import OfficialAlert, OfficialLevel
 from src.domain.value_objects.risk_level import RiskLevel
 
 STORM_MIN_RAIN_MM = 0.5
@@ -45,6 +49,30 @@ def comuna_outlook(area: AdminArea, outlook: PointOutlook) -> ComunaOutlook:
     )
 
 
+_OFFICIAL_TO_RISK = {OfficialLevel.AMARILLA: RiskLevel.AMARILLO, OfficialLevel.ROJA: RiskLevel.ROJO}
+
+
+def _fold(text: str) -> str:
+    return "".join(c for c in unicodedata.normalize("NFKD", text.casefold()) if not unicodedata.combining(c))
+
+
+def applies_to_comuna(alert: OfficialAlert, comuna: str) -> bool:
+    """La alerta nombra la comuna o rige para toda la región (no sólo para algunas provincias)."""
+    if alert.comunas:
+        return _fold(comuna) in {_fold(c) for c in alert.comunas}
+    return _fold(alert.scope).startswith("region")
+
+
+def with_official(comuna: ComunaOutlook, alerts: Sequence[OfficialAlert]) -> ComunaOutlook:
+    """Sube el nivel de la comuna al de la alerta de SENAPRED más alta que la incluye."""
+    mine = [a for a in alerts if applies_to_comuna(a, comuna.comuna)]
+    if not mine:
+        return comuna
+    top = max(mine, key=lambda a: a.level.severity)
+    level = RiskLevel.most_severe(comuna.level, _OFFICIAL_TO_RISK.get(top.level, RiskLevel.VERDE))
+    return comuna.model_copy(update={"level": level, "official_level": top.level, "official_hazard": top.hazard})
+
+
 class RegionOverviewUseCase:
     """Consulta todas las comunas de la región en una llamada y guarda el resultado un rato."""
 
@@ -52,6 +80,7 @@ class RegionOverviewUseCase:
         self,
         areas: Sequence[AdminArea],
         provider: AreaOutlookProvider,
+        official: OfficialAlertProvider | None = None,
         ttl_s: float = 1200.0,
         clock: Callable[[], float] = time.monotonic,
     ) -> None:
@@ -59,11 +88,26 @@ class RegionOverviewUseCase:
         for area in areas:
             self._by_region.setdefault(area.region_code, []).append(area)
         self._provider = provider
+        self._official = official
         self._ttl_s = ttl_s
         self._clock = clock
         self._cache: dict[str, tuple[float, RegionOverview]] = {}
 
     async def execute(self, region_code: str) -> RegionOverview:
+        """El pronóstico se guarda 20 minutos; las alertas de SENAPRED se aplican en cada consulta."""
+        overview = await self._weather_overview(region_code)
+        if self._official is None:
+            return overview
+        alerts = [a for a in await self._official.active_alerts() if region_code in a.region_codes]
+        if not alerts:
+            return overview
+        comunas = sorted(
+            (with_official(c, alerts) for c in overview.comunas),
+            key=lambda c: (-c.level.severity, -(c.official_level.severity if c.official_level else 0), -c.rain_mm, c.comuna),
+        )
+        return overview.model_copy(update={"comunas": comunas})
+
+    async def _weather_overview(self, region_code: str) -> RegionOverview:
         cached = self._cache.get(region_code)
         if cached and self._clock() - cached[0] < self._ttl_s:
             return cached[1]
