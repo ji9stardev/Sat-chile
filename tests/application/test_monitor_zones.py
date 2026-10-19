@@ -151,7 +151,7 @@ async def test_rain_triggers_and_escalates_debris_alert_only_where_there_are_que
     await monitor.execute()
     (alert,) = debris_alerts(alerts)
     assert alert.risk_level is RiskLevel.ROJO
-    assert "Suba AHORA" in alert.message  # al escalar cambian las instrucciones
+    assert "Manténgase lejos de quebradas" in alert.message  # al escalar cambian las instrucciones
     assert gateway.sent[-1][1].title.startswith("⬆ Sube a ROJO")
 
 

@@ -159,8 +159,15 @@ function renderHero(d, { savedAt, stale }) {
     : official
       ? `SENAPRED · ${OFFICIAL_WORDS[official.level]}`
       : `${THREAT_LABELS[threat]} · NIVEL ${level}`;
-  $('level-word').textContent = text.word;
-  $('level-title').textContent = text.title;
+  if (official) {
+    const where = official.applies_to === 'COMUNA' ? `en ${d.area?.comuna ?? 'su comuna'}` : 'en toda la región';
+    const word = (OFFICIAL_WORDS[official.level] ?? 'Alerta').toLowerCase();
+    $('level-word').textContent = `${word.charAt(0).toUpperCase()}${word.slice(1)} ${where}`;
+    $('level-title').textContent = `Por ${official.hazard.toLowerCase()}. Siga las indicaciones de SENAPRED y su municipio.`;
+  } else {
+    $('level-word').textContent = text.word;
+    $('level-title').textContent = text.title;
+  }
 
   const facts = [];
   if (d.consensus) facts.push(fact('Lluvia 24 h', mm(d.consensus.weighted_precipitation_mm)));
@@ -234,7 +241,7 @@ function renderHomeLinks(d) {
     : probSummary(d) ?? 'Pronóstico por hora y alertas';
 
   const urgent = severity(d.personal_risk_level) >= severity('NARANJA');
-  $('cta-title').textContent = urgent ? 'Ir a terreno alto' : 'Ver mi ruta segura';
+  $('cta-title').textContent = urgent ? 'Ver punto seguro cercano' : 'Ver mi ruta segura';
   const point = d.safe_points?.[0];
   $('cta-sub').textContent = point
     ? `Punto seguro · ${meters(point.distance_km)} · ${walkMinutes(point.distance_km)} min caminando`

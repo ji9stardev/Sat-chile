@@ -59,11 +59,11 @@ _LEVEL_SHIFT: dict[ExposureLevel, int] = {
 
 _RECOMMENDATION: dict[RiskLevel, str] = {
     RiskLevel.ROJO: (
-        "Evacúe de inmediato hacia terreno alto o al punto seguro indicado. "
-        "No cruce cauces, vados ni puentes con agua."
+        "Manténgase lejos de cauces, vados y puentes con agua, y siga las "
+        "indicaciones de SENAPRED y su municipio."
     ),
     RiskLevel.NARANJA: (
-        "Prepare su evacuación: tenga a mano documentos, agua, linterna y medicamentos, "
+        "Tenga a mano documentos, agua, linterna y medicamentos, "
         "y siga las instrucciones de SENAPRED y su municipio."
     ),
     RiskLevel.AMARILLO: "Manténgase informado y evite acercarse a riberas y quebradas.",

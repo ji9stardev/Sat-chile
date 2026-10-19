@@ -61,8 +61,8 @@ _ALERTING_OUTCOMES = frozenset({ConsensusOutcome.ALERTA_DESBORDE, ConsensusOutco
 
 _DEBRIS_ACTION: dict[RiskLevel, str] = {
     RiskLevel.AMARILLO: "Tenga lista su mochila y aléjese de la quebrada si suena distinto o baja con barro.",
-    RiskLevel.NARANJA: "Prepárese para salir hacia terreno alto lateral. No acampe ni se estacione junto a quebradas.",
-    RiskLevel.ROJO: "Suba AHORA a terreno alto lateral, no aguas abajo. No cruce quebradas, vados ni puentes.",
+    RiskLevel.NARANJA: "Esté preparado y no acampe ni se estacione junto a quebradas.",
+    RiskLevel.ROJO: "Manténgase lejos de quebradas, vados y puentes, y siga las indicaciones de la autoridad.",
 }
 
 

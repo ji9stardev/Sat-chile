@@ -126,4 +126,4 @@ async def test_gps_lists_nearby_and_governs_by_weighted_distance() -> None:
     assert d.debris_flow is not None and d.debris_flow.level is RiskLevel.ROJO  # quebrada a 330 m + 55 mm
     assert d.personal_risk_level is RiskLevel.ROJO
     assert d.elevation_m == 102
-    assert d.recommendations[0].startswith("Evacúe")
+    assert d.recommendations[0].startswith("Manténgase lejos de cauces")
