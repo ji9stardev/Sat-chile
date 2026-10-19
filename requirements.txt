@@ -1,0 +1,12 @@
+# Dependencias de ejecución (versiones fijadas y verificadas con la suite de pruebas).
+# Desarrollo/pruebas: pip install -e ".[dev]"   ·   Jobs PySpark opcionales: pip install -e ".[spark]"
+fastapi==0.143.3
+uvicorn[standard]==0.54.0
+pydantic==2.14.1
+pydantic-settings==2.16.0
+motor==3.7.1
+pymongo==4.19.0
+httpx==0.28.1
+pywebpush==2.5.0
+py-vapid==1.9.6
+cryptography==50.0.2

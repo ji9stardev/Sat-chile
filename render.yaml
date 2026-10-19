@@ -1,0 +1,30 @@
+# Blueprint de Render: New → Blueprint → elegir este repositorio.
+# Los valores marcados sync: false se piden al crear el servicio (copiarlos del .env local).
+services:
+  - type: web
+    name: sat-chile
+    runtime: docker
+    plan: free
+    region: oregon
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: SAT_MONGO_URI
+        sync: false
+      - key: SAT_MONGO_DB
+        value: sat_maule
+      - key: SAT_VAPID_PRIVATE_KEY
+        sync: false
+      - key: SAT_VAPID_PUBLIC_KEY
+        sync: false
+      - key: SAT_VAPID_SUBJECT
+        value: mailto:alertas@sat-chile.cl
+      - key: SAT_REPORTER_HASH_SECRET
+        sync: false
+      - key: SAT_CRON_TOKEN
+        sync: false
+      # Plan gratuito: el monitor lo dispara un cron externo (ver README).
+      - key: SAT_MONITOR_INTERVAL_MIN
+        value: "0"
+      - key: SAT_WINDY_POINT_API_KEY
+        sync: false

@@ -1,0 +1,390 @@
+{
+ "source": "Lista entregada por el equipo SAT-Maule (2026-10-18). Pendiente de verificar con cada municipalidad.",
+ "phones": [
+  {
+   "comuna": "Santiago",
+   "region_code": "CL-RM",
+   "phone": "1406",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Las Condes",
+   "region_code": "CL-RM",
+   "phone": "1402",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Providencia",
+   "region_code": "CL-RM",
+   "phone": "1414",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Vitacura",
+   "region_code": "CL-RM",
+   "phone": "1403",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Lo Barnechea",
+   "region_code": "CL-RM",
+   "phone": "1405",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Ñuñoa",
+   "region_code": "CL-RM",
+   "phone": "1445",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "La Florida",
+   "region_code": "CL-RM",
+   "phone": "1416",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Maipú",
+   "region_code": "CL-RM",
+   "phone": "1418",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Puente Alto",
+   "region_code": "CL-RM",
+   "phone": "1417",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Peñalolén",
+   "region_code": "CL-RM",
+   "phone": "1461",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "La Reina",
+   "region_code": "CL-RM",
+   "phone": "1419",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Pudahuel",
+   "region_code": "CL-RM",
+   "phone": "1420",
+   "verified": false,
+   "note": "El mismo número figura para Coquimbo: confírmelo con su municipalidad."
+  },
+  {
+   "comuna": "Quilicura",
+   "region_code": "CL-RM",
+   "phone": "1447",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Estación Central",
+   "region_code": "CL-RM",
+   "phone": "1411",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "San Miguel",
+   "region_code": "CL-RM",
+   "phone": "1458",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Macul",
+   "region_code": "CL-RM",
+   "phone": "1442",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Recoleta",
+   "region_code": "CL-RM",
+   "phone": "1404",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Huechuraba",
+   "region_code": "CL-RM",
+   "phone": "1413",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Colina",
+   "region_code": "CL-RM",
+   "phone": "1468",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Lampa",
+   "region_code": "CL-RM",
+   "phone": "1421",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Valparaíso",
+   "region_code": "CL-VS",
+   "phone": "1412",
+   "verified": false,
+   "note": "El mismo número figura para Viña del Mar: confírmelo con su municipalidad."
+  },
+  {
+   "comuna": "Viña del Mar",
+   "region_code": "CL-VS",
+   "phone": "1412",
+   "verified": false,
+   "note": "El mismo número figura para Valparaíso: confírmelo con su municipalidad."
+  },
+  {
+   "comuna": "Quilpué",
+   "region_code": "CL-VS",
+   "phone": "1431",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Villa Alemana",
+   "region_code": "CL-VS",
+   "phone": "1432",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Concón",
+   "region_code": "CL-VS",
+   "phone": "1425",
+   "verified": false,
+   "note": "El mismo número figura para La Serena: confírmelo con su municipalidad."
+  },
+  {
+   "comuna": "San Antonio",
+   "region_code": "CL-VS",
+   "phone": "1480",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Los Andes",
+   "region_code": "CL-VS",
+   "phone": "1456",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Quillota",
+   "region_code": "CL-VS",
+   "phone": "1454",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Talca",
+   "region_code": "CL-ML",
+   "phone": "1415",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Curicó",
+   "region_code": "CL-ML",
+   "phone": "1485",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Linares",
+   "region_code": "CL-ML",
+   "phone": "1482",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Constitución",
+   "region_code": "CL-ML",
+   "phone": "1488",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Concepción",
+   "region_code": "CL-BI",
+   "phone": "1465",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Talcahuano",
+   "region_code": "CL-BI",
+   "phone": "1408",
+   "verified": false,
+   "note": "El mismo número figura para Chillán: confírmelo con su municipalidad."
+  },
+  {
+   "comuna": "San Pedro de la Paz",
+   "region_code": "CL-BI",
+   "phone": "1424",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Los Ángeles",
+   "region_code": "CL-BI",
+   "phone": "1460",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Chiguayante",
+   "region_code": "CL-BI",
+   "phone": "1475",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Temuco",
+   "region_code": "CL-AR",
+   "phone": "1409",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Padre Las Casas",
+   "region_code": "CL-AR",
+   "phone": "1423",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Villarrica",
+   "region_code": "CL-AR",
+   "phone": "1481",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Pucón",
+   "region_code": "CL-AR",
+   "phone": "1438",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Arica",
+   "region_code": "CL-AP",
+   "phone": "1427",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Iquique",
+   "region_code": "CL-TA",
+   "phone": "1428",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Antofagasta",
+   "region_code": "CL-AN",
+   "phone": "1422",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Calama",
+   "region_code": "CL-AN",
+   "phone": "1401",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Copiapó",
+   "region_code": "CL-AT",
+   "phone": "1433",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "La Serena",
+   "region_code": "CL-CO",
+   "phone": "1425",
+   "verified": false,
+   "note": "El mismo número figura para Concón: confírmelo con su municipalidad."
+  },
+  {
+   "comuna": "Coquimbo",
+   "region_code": "CL-CO",
+   "phone": "1420",
+   "verified": false,
+   "note": "El mismo número figura para Pudahuel: confírmelo con su municipalidad."
+  },
+  {
+   "comuna": "Rancagua",
+   "region_code": "CL-LI",
+   "phone": "1441",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Chillán",
+   "region_code": "CL-NB",
+   "phone": "1408",
+   "verified": false,
+   "note": "El mismo número figura para Talcahuano: confírmelo con su municipalidad."
+  },
+  {
+   "comuna": "Valdivia",
+   "region_code": "CL-LR",
+   "phone": "1451",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Osorno",
+   "region_code": "CL-LL",
+   "phone": "1426",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Puerto Montt",
+   "region_code": "CL-LL",
+   "phone": "1430",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Coyhaique",
+   "region_code": "CL-AI",
+   "phone": "1440",
+   "verified": false,
+   "note": null
+  },
+  {
+   "comuna": "Punta Arenas",
+   "region_code": "CL-MA",
+   "phone": "1435",
+   "verified": false,
+   "note": null
+  }
+ ]
+}

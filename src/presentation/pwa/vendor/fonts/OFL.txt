@@ -1,0 +1,4 @@
+Atkinson Hyperlegible
+Copyright 2020, Braille Institute of America, Inc. (https://www.brailleinstitute.org/freefont)
+Licensed under the SIL Open Font License, Version 1.1: https://openfontlicense.org
+Obtained from Google Fonts (latin subset, weights 400 and 700).
