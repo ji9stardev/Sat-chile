@@ -36,7 +36,8 @@ por notificación push aunque tenga la pantalla bloqueada.
 | Pieza | Qué hace |
 |---|---|
 | **Motor de consenso** | Pondera la lluvia pronosticada por 3 modelos globales (ECMWF IFS 0.25°, DWD ICON, NOAA GFS) vía Open-Meteo. Si los modelos discrepan, baja un nivel para evitar falsas alarmas. |
-| **Filtro hidrológico** | Si la isoterma 0 °C está bajo 1850 m (precipita nieve en la cordillera) o el suelo está seco (< 0,28 m³/m³), descarta el riesgo de desborde: emite un *Reporte de Tranquilidad* o un *Aviso de Tormenta Eléctrica sin riesgo de desborde*. |
+| **Filtro hidrológico** | Si la isoterma 0 °C está bajo 1850 m (precipita nieve en la cordillera) o el suelo está seco (< 0,28 m³/m³), cada condición **baja un nivel** el riesgo de desborde (no lo anula: con mucha lluvia el agua escurre igual). La app muestra el motivo junto a los mm. Si llega a VERDE emite un *Reporte de Tranquilidad* o un *Aviso de Tormenta Eléctrica sin riesgo de desborde*. |
+| **Alertas de SENAPRED** | Sólo fija su nivel la alerta amarilla o roja de lluvia, crecida, aluvión o tormenta que **nombra su comuna**. Las alertas para toda la región se informan sin cambiar el color de su punto (salvo que falte el pronóstico propio), y las de otras amenazas (incendios, volcanes, emergencias sanitarias) aparecen sólo en la tarjeta de SENAPRED. |
 | **Cauces cercanos** | Al tomar la ubicación, lista y dibuja los ríos, esteros, quebradas y canales a menos de 3 km (red hidrográfica completa del Maule, ~5.200 tramos de OpenStreetMap). |
 | **Exposición personal** | Usa el cauce que más influye (distancia ponderada por tipo: un canal de riego pesa menos que un río) y la altura del usuario sobre él. En la ribera el nivel sube; en una terraza alta, baja. |
 | **Aluvión** | Estar cerca de una quebrada **no** genera alerta por sí solo. Se avisa cuando, además, la isoterma 0 °C está sobre 2.200 m y la lluvia de 24 h (la mayor entre la pronosticada y la ya caída) llega a 15 / 30 / 50 mm (AMARILLO / NARANJA / ROJO). Un chubasco de 10 mm/h o más sube un nivel. Umbrales heurísticos a calibrar con SERNAGEOMIN. |
@@ -44,9 +45,9 @@ por notificación push aunque tenga la pantalla bloqueada.
 | **Deslizamientos** | Mide la pendiente del terreno alrededor del usuario con el modelo de elevación (8 puntos a 120 m). Bajo 15° no hay alerta; de 15° a 30° el nivel de lluvia baja uno; sobre 30° se aplica completo. |
 | **Caudal del río** | Pronóstico GloFAS (Copernicus) del río más cercano a menos de 3 km: caudal de hoy, máximo de los próximos 7 días y tendencia. |
 | **Reportes vecinales** | Con 3 vecinos distintos reportando a menos de 2 km en 3 horas, se emite una alerta ciudadana (AMARILLO o NARANJA; nunca ROJO por sí sola). |
-| **Monitor de zonas** | Cada 30 min evalúa las zonas, crea o escala alertas de desborde, de aluvión (sólo zonas con quebradas a menos de 7 km del centro) y de tormenta eléctrica, y las despacha por Web Push. |
+| **Monitor de zonas** | Cada 30 min evalúa las zonas, crea o escala alertas de desborde, de aluvión (sólo zonas con quebradas a menos de 7 km del centro) y de tormenta eléctrica, y las despacha por Web Push. El aviso de aluvión sólo llega a quien registró una ubicación a menos de 1 km de una quebrada. |
 | **Tormenta eléctrica** | Con CAPE ≥ 800 J/kg y algo de lluvia (≥ 1 mm) se emite aviso AMARILLO aunque la lluvia total sea baja. |
-| **Anti-spam** | Cooldown por nivel (ROJO 15 min … VERDE 12 h); un aumento de nivel se avisa siempre. |
+| **Anti-spam** | Cooldown por nivel (ROJO 1 h, NARANJA 3 h, AMARILLO 12 h: sin recordatorios nocturnos por un aviso preventivo); un aumento de nivel se avisa siempre. |
 | **PWA offline** | Guarda zonas, puntos seguros, último diagnóstico y teléfonos de emergencia. Los reportes hechos sin señal se envían al volver la conexión. |
 
 ## Arquitectura

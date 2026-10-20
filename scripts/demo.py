@@ -110,7 +110,8 @@ async def demo_container(settings: Settings) -> Container:
     weather: WeatherForecastProvider = SIM_WEATHER if SIMULATED else CachedWeatherProvider(meteo, ttl_s=900)
     engine = ConsensusEngineService()
     dispatcher = DispatchAlertsUseCase(
-        subscribers=subscribers, zones=zones, log=FakeNotificationLog(), gateway=gateway, cooldown=CooldownPolicy()
+        subscribers=subscribers, zones=zones, log=FakeNotificationLog(), gateway=gateway, cooldown=CooldownPolicy(),
+        watercourses=FakeWatercourses(courses),
     )
     STATE.update(
         zones=zones, alerts=alerts, subscribers=subscribers, gateway=gateway, seed=zones_seed,

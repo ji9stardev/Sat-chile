@@ -157,6 +157,32 @@ async def test_dispatch_cooldown_escalation_and_expired_subscriptions() -> None:
     assert all(n.title.startswith("⬆ Sube a ROJO") for e, n in gateway.sent[-2:] if not e.endswith("picky"))
 
 
+async def test_debris_alert_only_reaches_subscribers_near_a_ravine() -> None:
+    from src.domain.entities import Watercourse, WatercourseKind
+    from src.domain.value_objects.coordinates import GeoLineString
+
+    ravine = Watercourse(
+        name="Quebrada", kind=WatercourseKind.QUEBRADA, commune="Licantén", geometry_source="test",
+        geometry=GeoLineString(vertices=(
+            Coordinates(latitude=-34.9800, longitude=-72.0000), Coordinates(latitude=-34.9790, longitude=-71.9990),
+        )),
+    )
+    by_ravine = sub("by-ravine", zone_ids=frozenset({LICANTEN.id}), location=NEAR_MATAQUITO)
+    far = sub("far", zone_ids=frozenset({LICANTEN.id}), location=Coordinates(latitude=-34.9600, longitude=-72.0300))
+    unknown = sub("unknown", zone_ids=frozenset({LICANTEN.id}))
+    gateway = FakeGateway()
+    uc = DispatchAlertsUseCase(
+        subscribers=FakeSubscribers([by_ravine, far, unknown]), zones=FakeZones(ZONES), log=FakeNotificationLog(),
+        gateway=gateway, cooldown=CooldownPolicy(), clock=Clock(NOW), watercourses=FakeWatercourses([ravine]),
+    )
+    debris = active_alert(RiskLevel.AMARILLO).model_copy(update={"threat_type": ThreatType.REMOCION_EN_MASA})
+    await uc.execute(debris)
+    assert {e.rsplit("/", 1)[1] for e, _ in gateway.sent} == {"by-ravine", "unknown"}
+
+    flood = await uc.execute(active_alert(RiskLevel.AMARILLO))
+    assert flood.candidates == 3  # el desborde sí llega a toda la zona
+
+
 # ---------------------------------------------------------------- crowdsourcing
 
 

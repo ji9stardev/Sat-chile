@@ -284,12 +284,21 @@ class EvaluateGpsRiskUseCase:
         )
         river_flow = await self._river_flow(measured, missing)
         official_alerts = await self._official_alerts(area, macro_region=area.region_code if area else None)
+        if consensus is None:
+            # Sin pronóstico propio no se puede afirmar que su punto esté tranquilo: rige la alerta regional.
+            official_alerts = tuple(
+                a.model_copy(update={"sets_level": True})
+                if a.applies_to == "TODA_REGION" and a.hydromet and a.level in _OFFICIAL_TO_RISK
+                else a
+                for a in official_alerts
+            )
         personal = RiskLevel.most_severe(
             assessment.personal_risk_level,
             debris.level,
             landslide.level if landslide else RiskLevel.VERDE,
-            # La alerta oficial que nombra su comuna manda sobre el cálculo propio.
-            *(_OFFICIAL_TO_RISK[a.level] for a in official_alerts if a.applies_to != "REGION" and a.level in _OFFICIAL_TO_RISK),
+            # La alerta oficial de lluvia/crecida/aluvión que nombra su comuna manda sobre el cálculo
+            # propio. Las de toda la región o de otras amenazas (incendio, volcán…) sólo se informan.
+            *(_OFFICIAL_TO_RISK[a.level] for a in official_alerts if a.sets_level),
         )
 
         threat = (
@@ -341,6 +350,11 @@ class EvaluateGpsRiskUseCase:
                 rojo_mm=debris_service.config.rojo_mm,
                 min_freezing_level_m=debris_service.config.min_freezing_level_m,
                 intense_hourly_mm=debris_service.config.intense_hourly_mm,
+                flood_mm=(
+                    engine.config.amarillo_threshold_mm,
+                    engine.config.naranja_threshold_mm,
+                    engine.config.rojo_threshold_mm,
+                ),
             ),
             zones=tuple(ZoneSummary.from_zone(z) for z in zones),
             hazard_level=hazard,
@@ -388,7 +402,12 @@ class EvaluateGpsRiskUseCase:
                 briefs.append(OfficialAlertBrief.from_alert(alert, "TODA_REGION"))
             else:
                 briefs.append(OfficialAlertBrief.from_alert(alert, "REGION"))  # provincias: informativa
-        return tuple(sorted(briefs, key=lambda b: (b.applies_to == "REGION", -b.level.severity, b.applies_to != "COMUNA")))
+        return tuple(
+            sorted(
+                briefs,
+                key=lambda b: (not b.hydromet, b.applies_to == "REGION", -b.level.severity, b.applies_to != "COMUNA"),
+            )
+        )
 
     async def _locality(self, location: Coordinates) -> LocalitySummary | None:
         found = await self._localities.nearest(location) if self._localities is not None else None

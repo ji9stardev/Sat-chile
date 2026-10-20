@@ -33,9 +33,23 @@ def test_named_comuna_takes_the_red_alert() -> None:
     assert (c.level, c.official_level) == (RiskLevel.ROJO, OfficialLevel.ROJA)
 
 
-def test_region_wide_alert_applies_to_every_comuna() -> None:
+def test_region_wide_alert_is_noted_but_does_not_paint_every_comuna() -> None:
     c = with_official(comuna("Maipú"), ALERTS)
-    assert (c.level, c.official_level) == (RiskLevel.AMARILLO, OfficialLevel.AMARILLA)
+    assert (c.level, c.official_level) == (RiskLevel.VERDE, OfficialLevel.AMARILLA)
+
+
+def test_alert_for_another_hazard_does_not_raise_the_level() -> None:
+    fire = alert(OfficialLevel.ROJA, ("Maipú",)).model_copy(update={"hazard": "Incendio forestal"})
+    c = with_official(comuna("Maipú"), [fire])
+    assert (c.level, c.official_level, c.official_hazard) == (RiskLevel.VERDE, OfficialLevel.ROJA, "Incendio forestal")
+
+
+def test_hazard_classification() -> None:
+    def hazard(text: str) -> bool:
+        return alert(OfficialLevel.AMARILLA).model_copy(update={"hazard": text}).is_hydrometeorological
+
+    assert all(map(hazard, ("Evento meteorológico", "Remoción en Masa", "Inundaciones - Anegamientos", "Tormentas eléctricas")))
+    assert not any(map(hazard, ("Incendio forestal", "Actividad Volcánica", "Evento zoosanitario", "Viento - Temporal viento")))
 
 
 def test_without_alerts_the_rain_level_stays() -> None:

@@ -34,7 +34,7 @@ def comuna_outlook(area: AdminArea, outlook: PointOutlook) -> ComunaOutlook:
     level = rain_level(zone, outlook.rain_mm)
     snow = outlook.freezing_level_m is not None and outlook.freezing_level_m < THRESHOLDS[zone].flood_freezing_m
     if snow:
-        level = RiskLevel.VERDE  # en altura nieva: el agua no baja a los cauces
+        level = level.deescalate()  # en altura nieva: baja menos agua, pero en el valle sigue lloviendo
     # Un solo modelo: la tormenta se informa como «posible» pero no sube el nivel; el nivel de
     # tormenta lo decide el ensamble (diagnóstico personal) o una alerta de SENAPRED.
     storm = outlook.storm_hours > 0 and outlook.rain_mm >= STORM_MIN_RAIN_MM
@@ -64,12 +64,17 @@ def applies_to_comuna(alert: OfficialAlert, comuna: str) -> bool:
 
 
 def with_official(comuna: ComunaOutlook, alerts: Sequence[OfficialAlert]) -> ComunaOutlook:
-    """Sube el nivel de la comuna al de la alerta de SENAPRED más alta que la incluye."""
+    """Anota la alerta de SENAPRED más alta que incluye a la comuna.
+
+    Sólo sube el nivel la alerta de lluvia, crecida, aluvión o tormenta que **nombra** la comuna:
+    una alerta para toda la región se anota, pero no pinta todas las comunas del mismo color.
+    """
     mine = [a for a in alerts if applies_to_comuna(a, comuna.comuna)]
     if not mine:
         return comuna
-    top = max(mine, key=lambda a: a.level.severity)
-    level = RiskLevel.most_severe(comuna.level, _OFFICIAL_TO_RISK.get(top.level, RiskLevel.VERDE))
+    top = max(mine, key=lambda a: (a.is_hydrometeorological, a.level.severity))
+    named = [a for a in mine if a.comunas and a.is_hydrometeorological]
+    level = RiskLevel.most_severe(comuna.level, *(_OFFICIAL_TO_RISK.get(a.level, RiskLevel.VERDE) for a in named))
     return comuna.model_copy(update={"level": level, "official_level": top.level, "official_hazard": top.hazard})
 
 

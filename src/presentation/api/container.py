@@ -123,7 +123,8 @@ async def build_container(settings: Settings) -> Container:
 
     engine = ConsensusEngineService()
     dispatcher = DispatchAlertsUseCase(
-        subscribers=subscribers, zones=zones, log=notification_log, gateway=gateway, cooldown=CooldownPolicy()
+        subscribers=subscribers, zones=zones, log=notification_log, gateway=gateway, cooldown=CooldownPolicy(),
+        watercourses=watercourses,
     )
 
     async def health() -> dict[str, bool]:

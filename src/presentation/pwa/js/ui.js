@@ -85,8 +85,12 @@ export function mainThreat(d) {
 /** La alerta oficial de su comuna que fija el nivel actual (si el cálculo propio es menor). */
 function officialDriver(d) {
   const map = { AMARILLA: 'AMARILLO', ROJA: 'ROJO' };
-  return (d.official_alerts ?? []).find((a) => a.applies_to !== 'REGION' && map[a.level] === d.personal_risk_level) ?? null;
+  return (d.official_alerts ?? []).find((a) => a.sets_level && map[a.level] === d.personal_risk_level) ?? null;
 }
+
+/** Alerta amarilla o roja de lluvia/crecida/aluvión para toda la región: se informa, sin cambiar el nivel de su punto. */
+const regionalNotice = (d) =>
+  (d.official_alerts ?? []).find((a) => a.hydromet && a.applies_to === 'TODA_REGION' && (a.level === 'AMARILLA' || a.level === 'ROJA')) ?? null;
 
 // Con probabilidades (71 corridas) manda el ensemble: tormenta sólo si 30 % o más de las corridas
 // traen inestabilidad *y* lluvia en la misma hora. Sin ensemble, se usa el pronóstico principal.
@@ -167,6 +171,12 @@ function renderHero(d, { savedAt, stale }) {
   } else {
     $('level-word').textContent = text.word;
     $('level-title').textContent = text.title;
+    const regional = threat === 'NONE' ? regionalNotice(d) : null;
+    if (regional) {
+      const word = (OFFICIAL_WORDS[regional.level] ?? 'Alerta').toLowerCase();
+      $('level-title').textContent =
+        `${text.title} SENAPRED mantiene ${word} en toda la región por ${regional.hazard.toLowerCase()}: revise sus indicaciones.`;
+    }
   }
 
   const facts = [];
@@ -344,9 +354,11 @@ export function renderRefuges(refuges) {
   $('safe-points').closest('section').hidden = !hasOfficialSafePoint && Boolean(nearest);
   if (!hasOfficialSafePoint && nearest) {
     // Sin punto seguro oficial: se indica el refugio más cercano y su ruta.
-    $('safe-meta').textContent =
-      `El más cercano es un ${(SERVICE_KINDS[nearest.kind] ?? 'refugio').toLowerCase()} a ${meters(nearest.distance_km)} ` +
-      `(${walkMinutes(nearest.distance_km)} min caminando). Si va hacia allá, busque terreno alto y firme.`;
+    const kind = (SERVICE_KINDS[nearest.kind] ?? 'refugio').toLowerCase();
+    $('safe-meta').textContent = nearest.distance_km > 5
+      ? `El ${kind} registrado más cercano está a ${num(nearest.distance_km)} km. Ante una crecida no viaje hasta allá: suba a terreno alto y firme cerca de usted.`
+      : `El más cercano es un ${kind} a ${meters(nearest.distance_km)} ` +
+        `(${walkMinutes(nearest.distance_km)} min caminando). Si va hacia allá, busque terreno alto y firme.`;
     const route = $('safe-route');
     route.href = directionsUrl(nearest.latitude, nearest.longitude);
     route.setAttribute('aria-label', `Abrir la ruta a ${nearest.name}`);
@@ -558,7 +570,8 @@ function newOfficialKeys(d) {
     const k = officialKey(a);
     if (!(k in next)) {
       next[k] = firstRun ? 0 : now; // la primera vez nada es «nuevo»
-      if (!firstRun) arrived.push(a);
+      // Sólo interrumpe lo que rige donde está el usuario y es de lluvia/crecida/aluvión/tormenta.
+      if (!firstRun && a.hydromet && a.applies_to !== 'REGION') arrived.push(a);
     }
   }
   save(KEYS.seenOfficial, next);
@@ -595,7 +608,8 @@ function renderAlertList(rows) {
     items.push(group);
   }
   $('mon-alerts').replaceChildren(...items);
-  $('mon-alerts-title').textContent = active.length ? `Alertas activas (${active.length})` : 'Sin alertas activas';
+  const counted = active.filter((r) => levelOf(r) !== 'INFO').length;
+  $('mon-alerts-title').textContent = counted ? `Alertas activas (${counted})` : active.length ? 'Avisos de SENAPRED' : 'Sin alertas activas';
 }
 
 const relFmt = new Intl.RelativeTimeFormat('es-CL', { numeric: 'auto' });
@@ -624,7 +638,7 @@ function startLiveLine(d, { savedAt, stale }) {
       : `En vivo · revisado ${relTime(at)} · SENAPRED y pronóstico se revisan cada 3 minutos`;
     for (const r of document.querySelectorAll('#mon-alerts .row[data-official="true"]')) {
       const span = r.querySelector('.row-text > span');
-      if (span) span.textContent = span.textContent.replace(/ · (hace|ayer|anteayer|ahora).*$/, '') + ` · ${relTime(r.dataset.published)}`;
+      if (span) span.textContent = span.textContent.replace(/ · (hace|ayer|anteayer|ahora|este|dentro de).*$/, '') + ` · ${relTime(r.dataset.published)}`;
     }
   };
   clearInterval(liveTimer);
@@ -668,9 +682,10 @@ function renderMonitor(d, { savedAt, stale }) {
   if (d.consensus) {
     const level = d.consensus.outcome === 'ALERTA_DESBORDE' ? d.consensus.risk_level : 'VERDE';
     const intense = d.probabilities?.intense_pct;
+    const lowered = floodReduction(d);
     rows.push(row(
       'Lluvia intensa y desborde',
-      `${mm(d.consensus.weighted_precipitation_mm)} en 24 horas${intense != null ? ` · ${intense} % de chubasco fuerte` : ''}`,
+      `${mm(d.consensus.weighted_precipitation_mm)} en 24 horas${lowered ? ` · ${lowered}` : ''}${intense != null ? ` · ${intense} % de chubasco fuerte` : ''}`,
       level,
     ));
     const when = d.storm_window ? formatWindow(d.storm_window.start, d.storm_window.end) : 'Posible en las próximas 24 horas';
@@ -696,11 +711,13 @@ function renderMonitor(d, { savedAt, stale }) {
   // Las alertas oficiales van en filas propias, arriba: rigen para toda la comuna o región, mientras
   // las filas de abajo describen su punto exacto (así no se mezclan «Roja» con «sin quebradas»).
   const fresh = newOfficialKeys(d);
-  const officialRows = (d.official_alerts ?? []).map((a) => {
+  // Incendios, volcanes o emergencias sanitarias quedan en la tarjeta de SENAPRED de Inicio, no aquí.
+  const officialRows = (d.official_alerts ?? []).filter((a) => a.hydromet).map((a) => {
     const r = row(
       `${a.hazard} · SENAPRED`,
       `${OFFICIAL_WORDS[a.level] ?? a.level} · ${officialWhere(a, d)} · ${relTime(a.published_at)}`,
-      a.applies_to !== 'REGION' ? OFFICIAL_TO_LEVEL[a.level] ?? 'VERDE' : 'INFO',
+      // Sólo la alerta que nombra su comuna pinta la fila; la regional se informa.
+      a.sets_level ? OFFICIAL_TO_LEVEL[a.level] : 'INFO',
     );
     r.dataset.official = 'true';
     r.dataset.published = a.published_at;
@@ -785,14 +802,31 @@ function renderDetails(d) {
   $('detail-quality').textContent = missing.length ? `No se pudo revisar: ${missing.join(', ')}.` : '';
 }
 
+const REDUCTION_TEXT = Object.freeze({
+  SUELO_SECO: 'suelo seco: absorbe parte del agua',
+  ISOTERMA_BAJA: 'nieva en la cordillera: baja menos agua',
+});
+
+/** Por qué el nivel de desborde quedó bajo lo que indica la lluvia sola (o null si no se rebajó). */
+function floodReduction(d) {
+  const c = d.consensus;
+  if (!c || severity(c.risk_level) >= severity(c.raw_risk_level)) return null;
+  const why = (c.discard_reasons ?? []).map((r) => REDUCTION_TEXT[r]).filter(Boolean);
+  if (c.downgraded_by_disagreement) why.push('los modelos no coinciden');
+  return why.length ? `rebajado: ${why.join('; ')}` : null;
+}
+
 function renderRain(d) {
-  const t = d.rain_thresholds;
+  const thresholds = d.rain_thresholds;
   const marker = $('rain-marker');
-  if (!d.consensus || !t) {
+  if (!d.consensus || !thresholds) {
     $('rain-value').textContent = '–';
     marker.hidden = true;
     return;
   }
+  // Misma escala que la fila «Lluvia intensa y desborde» (la de aluvión es otra y va en Inicio).
+  const [amarillo, naranja, rojo] = thresholds.flood_mm ?? [thresholds.amarillo_mm, thresholds.naranja_mm, thresholds.rojo_mm];
+  const t = { amarillo_mm: amarillo, naranja_mm: naranja, rojo_mm: rojo, intense_hourly_mm: thresholds.intense_hourly_mm };
   const value = d.consensus.weighted_precipitation_mm;
   const top = t.rojo_mm * 1.2;
   $('rain-value').textContent = num(value, value < 10 ? 1 : 0);
@@ -808,12 +842,16 @@ function renderRain(d) {
       return label;
     }),
   );
-  const rain = effectiveRain(d);
-  $('rain-caption').textContent =
-    rain >= t.rojo_mm ? `Sobre ${num(t.rojo_mm)} mm: lluvia muy fuerte para su zona.`
-      : rain >= t.naranja_mm ? `Sobre ${num(t.naranja_mm)} mm: lluvia fuerte para su zona.`
-        : rain >= t.amarillo_mm ? `Sobre ${num(t.amarillo_mm)} mm: lluvia que puede activar quebradas y laderas.`
+  const lowered = floodReduction(d);
+  const caption =
+    value >= t.rojo_mm ? `Sobre ${num(t.rojo_mm)} mm: lluvia muy fuerte para su zona.`
+      : value >= t.naranja_mm ? `Sobre ${num(t.naranja_mm)} mm: lluvia fuerte para su zona.`
+        : value >= t.amarillo_mm ? `Sobre ${num(t.amarillo_mm)} mm: lluvia que puede hacer crecer esteros y ríos.`
           : 'Lluvia baja para su zona.';
+  const shown = d.consensus.outcome === 'ALERTA_DESBORDE' ? d.consensus.risk_level : 'VERDE';
+  $('rain-caption').textContent = lowered
+    ? `${caption} Nivel de desborde: ${(LEVELS[shown]?.word ?? shown).toLowerCase()} (${lowered}).`
+    : caption;
   const c = d.conditions;
   $('rain-extra').textContent = c
     ? `Ya cayeron ${mm(c.recent_precipitation_mm)} en las últimas 24 h · máximo ${num(c.max_hourly_precipitation_mm, 1)} mm/h` +

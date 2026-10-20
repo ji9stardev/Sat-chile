@@ -10,11 +10,11 @@ El flujo de evaluación es determinista y auditable:
 3. **Penalización por desacuerdo.** Si menos de la mitad del peso respalda
    el nivel de consenso, se rebaja un nivel (evita falsas alarmas por un
    único modelo extremo).
-4. **Filtro de descarte hidrológico.** Si la isoterma 0 °C está bajo
-   1850 m (precipita como nieve en la cuenca alta) o el suelo está seco
-   (humedad < 0.28 m³/m³, alta infiltración), se descarta el riesgo de
-   desborde y se emite un *Reporte de Tranquilidad*, o bien un *Aviso de
-   Tormenta Eléctrica sin riesgo de desborde* si la convección (CAPE) es alta.
+4. **Filtro hidrológico.** Si la isoterma 0 °C está bajo 1850 m (precipita
+   como nieve en la cuenca alta) o el suelo está seco (humedad < 0.28 m³/m³,
+   alta infiltración), cada condición rebaja un nivel. Si el nivel llega a
+   VERDE se emite un *Reporte de Tranquilidad*, o bien un *Aviso de Tormenta
+   Eléctrica sin riesgo de desborde* si la convección (CAPE) es alta.
 5. **Tormenta eléctrica.** Con CAPE alto y algo de lluvia se avisa aunque
    la lluvia total esté bajo los umbrales de desborde: los rayos no
    dependen del acumulado.
@@ -179,6 +179,21 @@ class ConsensusEngineService:
             )
 
         reasons = self.discard_reasons(conditions)
+        # Cada condición atenuante baja un nivel; ya no anula la alerta entera: con 70 mm el agua
+        # escurre aunque el suelo esté seco, y bajo la isoterma (el valle) sigue lloviendo.
+        for _ in reasons:
+            level = level.deescalate()
+        if level > RiskLevel.VERDE:
+            summary = self._flood_summary(consensus_mm, level, len(usable), reasons)
+            if self._thunderstorm_likely(consensus_mm, conditions):
+                summary += " Además hay posibilidad de tormenta eléctrica: evite espacios abiertos."
+            return metrics.to_result(
+                outcome=ConsensusOutcome.ALERTA_DESBORDE,
+                level=level,
+                threat=ThreatType.DESBORDE_RIO,
+                reasons=reasons,
+                summary=summary,
+            )
         if reasons and self._thunderstorm_likely(consensus_mm, conditions):
             return metrics.to_result(
                 outcome=ConsensusOutcome.AVISO_TORMENTA_ELECTRICA,
@@ -187,24 +202,12 @@ class ConsensusEngineService:
                 reasons=reasons,
                 summary=self._thunderstorm_summary(consensus_mm, reasons, conditions),
             )
-        if reasons:
-            return metrics.to_result(
-                outcome=ConsensusOutcome.REPORTE_TRANQUILIDAD,
-                level=RiskLevel.VERDE,
-                threat=ThreatType.INUNDACION,
-                reasons=reasons,
-                summary=self._tranquility_summary(consensus_mm, reasons),
-            )
-
-        summary = self._flood_summary(consensus_mm, level, len(usable))
-        if self._thunderstorm_likely(consensus_mm, conditions):
-            summary += " Además hay posibilidad de tormenta eléctrica: evite espacios abiertos."
         return metrics.to_result(
-            outcome=ConsensusOutcome.ALERTA_DESBORDE,
-            level=level,
-            threat=ThreatType.DESBORDE_RIO,
-            reasons=(),
-            summary=summary,
+            outcome=ConsensusOutcome.REPORTE_TRANQUILIDAD,
+            level=RiskLevel.VERDE,
+            threat=ThreatType.INUNDACION,
+            reasons=reasons,
+            summary=self._tranquility_summary(consensus_mm, reasons),
         )
 
     def _thunderstorm_likely(self, consensus_mm: float, conditions: HydrologicalConditions) -> bool:
@@ -264,10 +267,14 @@ class ConsensusEngineService:
         return cm.clamp(sum(support))
 
     @staticmethod
-    def _flood_summary(mm: float, level: RiskLevel, n_models: int) -> str:
+    def _flood_summary(mm: float, level: RiskLevel, n_models: int, reasons: tuple[DiscardReason, ...] = ()) -> str:
+        context = (
+            f"El nivel se rebajó por {_describe_reasons(reasons)}." if reasons
+            else "El suelo está húmedo y la isoterma alta."
+        )
         return (
             f"Alerta {level.value}: el consenso de {n_models} modelos globales proyecta "
-            f"{mm:.1f} mm de precipitación con suelo saturado e isoterma alta. "
+            f"{mm:.1f} mm de precipitación. {context} "
             "Existe riesgo de crecida y desborde de cauces. Siga las instrucciones de la autoridad."
         )
 

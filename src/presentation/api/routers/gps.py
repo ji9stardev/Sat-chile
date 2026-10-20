@@ -23,6 +23,8 @@ from src.presentation.api.dependencies import get_evaluate_gps_risk, get_region_
 
 router = APIRouter(prefix="/api", tags=["Diagnóstico GPS"])
 
+FALLBACK_REFUGE_KM = 100.0
+
 
 @lru_cache(maxsize=1)
 def get_place_index() -> PlaceIndex:
@@ -85,9 +87,13 @@ async def refuges(
 ) -> list[NearbyService]:
     """Hasta 60, del más cercano al más lejano (OpenStreetMap, importado por región).
 
+    Si no hay ninguno en el radio, se entregan los 5 más cercanos a menos de
+    ``FALLBACK_REFUGE_KM`` (en zonas con pocos datos un mapa vacío no ayuda).
     Muchos puntos de encuentro son de evacuación por **tsunami**: sirven para
     alejarse del mar, no necesariamente de un río o una quebrada.
     """
+    point = Coordinates(latitude=lat, longitude=lon)
+    found = finder.find_near(point, radius_km) or finder.find_near(point, FALLBACK_REFUGE_KM)[:5]
     return [
         NearbyService(
             kind=r.kind,
@@ -98,7 +104,7 @@ async def refuges(
             longitude=r.location.longitude,
             detail=r.detail,
         )
-        for r, d in finder.find_near(Coordinates(latitude=lat, longitude=lon), radius_km)
+        for r, d in found
     ]
 
 
