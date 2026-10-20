@@ -199,7 +199,11 @@ main {
 .hero[data-threat="TORMENTA"] .ico-TORMENTA,
 .hero[data-threat="NONE"] .ico-NONE,
 .hero[data-threat="SIN_DATOS"] .ico-SIN_DATOS { display: block; }
-.hero-threat { font-size: 15px; font-weight: 700; letter-spacing: 1.2px; }
+.hero-threat { font-size: 14px; font-weight: 700; letter-spacing: 1.2px; }
+.hero-level {
+  margin-left: auto; flex: none; padding: 6px 12px; border-radius: 999px;
+  background: var(--level-chip); font-size: 14px; font-weight: 700; letter-spacing: 0.8px;
+}
 .hero-word { font-size: 36px; font-weight: 700; letter-spacing: -0.5px; line-height: 1.05; }
 .hero-title { font-size: 18px; line-height: 1.35; margin-top: 8px; }
 .facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 4px; }
@@ -241,41 +245,55 @@ main {
 .note { border: 2px solid var(--amarillo); }
 .note[hidden], .hint-card[hidden] { display: none; }
 
-.link-card, .cta {
-  display: flex; align-items: center; gap: 12px; text-decoration: none;
-  border-radius: 16px; padding: 8px 16px;
+.home-actions { display: flex; flex-direction: column; gap: 10px; }
+.cta {
+  display: flex; align-items: center; gap: 14px; min-height: 72px; padding: 12px 18px;
+  border-radius: 18px; background: var(--accent); color: #FFFFFF; text-decoration: none;
 }
-.link-card { min-height: 56px; background: var(--surface); color: var(--text); }
-.link-card:hover { color: var(--text); background: #FBFAF7; }
-.link-ico { color: var(--accent); flex: none; }
-.link-card[data-storm="true"] .link-ico { color: #B26A00; }
-.link-text, .cta-text { flex: 1; display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-.link-text strong { font-size: 17px; }
-.link-text span { font-size: 15px; color: var(--muted); }
-.chev { flex: none; }
-.cta { min-height: 68px; padding: 12px 18px; border-radius: 18px; background: var(--accent); color: #FFFFFF; }
 .cta:hover { color: #FFFFFF; background: var(--accent-ink); }
-.cta-text strong { font-size: 20px; }
+.cta-text { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.cta-text strong { font-size: 19px; }
 .cta-text span { font-size: 15px; color: var(--accent-soft); }
+.chev { flex: none; }
+.quick-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.quick-link {
+  display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 56px; padding: 8px 12px;
+  border-radius: 16px; border: 1.5px solid var(--border-strong); background: var(--surface);
+  color: var(--text); text-decoration: none; font-size: 16px; font-weight: 700; text-align: center;
+}
+.quick-link:hover { color: var(--text); background: #FBFAF7; }
+.link-ico { color: var(--accent); flex: none; }
+.quick-link[data-storm="true"] .link-ico { color: #B26A00; }
+
+/* tarjeta con encabezado y dato a la derecha (alertas oficiales, teléfonos) */
+.card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.card-head h2 { font-size: 20px; }
+.card-meta { font-size: 14px; color: var(--muted); }
+.card h2 { font-size: 20px; }
+
+/* aviso regional de SENAPRED con su punto en verde */
+.regional-notice { display: flex; gap: 12px; padding: 16px; border-radius: 20px; background: var(--accent-soft); color: var(--text); }
+.regional-notice[hidden] { display: none; }
+.regional-ico {
+  flex: none; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  background: var(--surface); color: var(--accent);
+}
+.regional-text { display: flex; flex-direction: column; gap: 4px; }
+.regional-text h2 { font-size: 17px; }
+.regional-text p { font-size: 15px; color: var(--accent-ink); }
+.regional-text a { min-height: 44px; display: flex; align-items: center; font-size: 15px; font-weight: 700; }
 
 .steps { margin: 0; padding: 0; list-style: none; counter-reset: step; display: flex; flex-direction: column; gap: 8px; }
 .steps li {
   counter-increment: step; display: flex; align-items: center; gap: 14px;
   padding: 10px 14px; border-radius: 16px; background: var(--surface); font-size: 18px; line-height: 1.3;
 }
+.card .steps li { min-height: 48px; padding: 8px 12px; border-radius: 14px; background: var(--surface-2); font-size: 17px; }
 .steps li::before {
   content: counter(step); flex: none; width: 32px; height: 32px; border-radius: 50%;
   background: var(--text); color: #FFFFFF; display: flex; align-items: center; justify-content: center;
   font-size: 16px; font-weight: 700;
 }
-
-.calls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-.btn-call {
-  display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; padding: 6px 8px;
-  border-radius: 16px; border: 2px solid var(--text); color: var(--text); text-decoration: none;
-  font-size: 17px; font-weight: 700; text-align: center;
-}
-.btn-call:hover { color: var(--text); background: var(--surface); }
 
 .disclaimer { display: flex; flex-direction: column; gap: 8px; font-size: 15px; color: var(--muted-2); padding: 8px 2px 0; }
 
@@ -398,13 +416,29 @@ main {
 .row-link { color: var(--text); text-decoration: none; }
 .row-link:hover { color: var(--text); background: #FBFAF7; }
 .kind-bar { flex: none; width: 6px; align-self: stretch; border-radius: 3px; background: var(--kind-color, var(--river)); }
-.phones { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.phones { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .phones a {
-  display: flex; flex-direction: column; gap: 2px; min-height: 64px; padding: 10px 14px; border-radius: 16px;
-  background: var(--surface); color: var(--text); text-decoration: none;
+  display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 10px 12px; border-radius: 16px;
+  background: var(--surface-2); color: var(--text); text-decoration: none;
 }
-.phones .num { font-size: 22px; font-weight: 700; }
-.phones .who { font-size: 14px; color: var(--muted); }
+.phones a:hover { color: var(--text); background: #E9E6DE; }
+.phone-ico {
+  flex: none; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  background: var(--surface); color: var(--accent);
+}
+.phone-text { display: flex; flex-direction: column; min-width: 0; }
+.phones .num { font-size: 24px; font-weight: 700; line-height: 1.1; }
+.phones .who { font-size: 14px; color: var(--muted-2); }
+.muni-call {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 60px; padding: 10px 14px;
+  border-radius: 16px; border: 1.5px solid var(--border-strong); color: var(--text); text-decoration: none;
+}
+.muni-call[hidden] { display: none; }
+.muni-call:hover { color: var(--text); background: #FBFAF7; }
+.muni-text { display: flex; flex-direction: column; min-width: 0; }
+.muni-text strong { font-size: 16px; }
+.muni-text span { font-size: 15px; color: var(--muted-2); }
+.muni-action { flex: none; font-size: 15px; font-weight: 700; color: var(--accent); }
 
 /* ---------------------------------------------------------------- reportar */
 
@@ -532,22 +566,29 @@ textarea {
 
 /* ---------------------------------------------------------------- alertas oficiales SENAPRED */
 
-.official[hidden] { display: none; }
-.official { display: flex; flex-direction: column; gap: 8px; }
-.official-title { margin: 0; font-size: 16px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted-2); }
+.official[hidden], .official-group[hidden], .official-other[hidden] { display: none; }
+.official { gap: 14px; }
+.official-group { display: flex; flex-direction: column; gap: 8px; }
+.group-label { margin: 0; font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
 .official-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
-.official-item {
-  display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; border-radius: 18px;
-  border-left: 10px solid #2E7D9A; background: var(--surface);
+.official-item { display: flex; flex-direction: column; gap: 6px; padding: 14px; border-radius: 16px; background: var(--surface-2); }
+.official-item[data-level="ROJA"] { background: #FBEAEA; }
+.official-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.official-badge {
+  padding: 4px 10px; border-radius: 999px; font-size: 13px; font-weight: 700; letter-spacing: 0.6px;
+  background: var(--accent-soft); color: var(--accent-ink);
 }
-.official-item[data-level="AMARILLA"] { border-left-color: var(--amarillo); }
-.official-item[data-level="ROJA"] { border-left-color: var(--rojo); background: #FBEAEA; }
-.official-badge { align-self: flex-start; padding: 4px 10px; border-radius: 999px; font-size: 13px; font-weight: 700; letter-spacing: 0.5px; background: #2E7D9A; color: #FFFFFF; }
 .official-item[data-level="AMARILLA"] .official-badge { background: var(--amarillo); color: #15171A; }
-.official-item[data-level="ROJA"] .official-badge { background: var(--rojo); }
+.official-item[data-level="ROJA"] .official-badge { background: var(--rojo); color: #FFFFFF; }
+.official-time { font-size: 14px; color: var(--muted); }
 .official-item strong { font-size: 18px; line-height: 1.3; }
 .official-item p { margin: 0; font-size: 15px; color: var(--muted-2); line-height: 1.4; }
-.official-item a { font-weight: 700; color: var(--accent); }
+.official-item a { align-self: flex-start; min-height: 44px; display: flex; align-items: center; font-size: 15px; font-weight: 700; color: var(--accent); }
+.official-empty { padding: 12px 14px; border-radius: 16px; background: var(--surface-2); font-size: 16px; color: var(--muted-2); }
+.official-other { border-radius: 16px; background: var(--bg); padding: 0 14px; }
+.official-other summary { min-height: 48px; display: flex; align-items: center; font-size: 16px; font-weight: 700; cursor: pointer; }
+.official-other .official-list { padding-bottom: 14px; }
+.official-other .official-item { background: var(--surface); }
 
 /* ---------------------------------------------------------------- estudio con Windy */
 

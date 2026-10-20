@@ -79,7 +79,11 @@ export const THREAT_TEXT = Object.freeze({
   },
 });
 
-export const CALM_STEPS = Object.freeze(['Conozca su ruta hacia terreno alto', 'Tenga a mano su mochila de emergencia']);
+export const CALM_STEPS = Object.freeze([
+  'Tenga lista una mochila de emergencia',
+  'Conozca su ruta hacia terreno alto',
+  'Deje activadas las alertas de esta app',
+]);
 
 export const NO_DATA = Object.freeze({
   word: 'Sin datos',

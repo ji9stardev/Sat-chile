@@ -59,7 +59,8 @@
             <svg class="ico ico-NONE" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>
             <svg class="ico ico-SIN_DATOS" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
           </span>
-          <span id="hero-threat" class="hero-threat">SIN DATOS</span>
+          <span id="hero-threat" class="hero-threat">SU NIVEL AHORA</span>
+          <span id="hero-level" class="hero-level" hidden></span>
         </div>
         <div role="status" aria-live="assertive" aria-atomic="true">
           <h1 id="level-word" class="hero-word">Sin datos</h1>
@@ -76,9 +77,20 @@
         </div>
       </section>
 
-      <section id="official" class="official" aria-labelledby="official-title" hidden>
-        <h2 id="official-title" class="official-title">Alertas oficiales SENAPRED</h2>
-        <ul id="official-list" class="official-list"></ul>
+      <section id="steps-card" class="card" aria-labelledby="steps-title">
+        <h2 id="steps-title">Qué hacer ahora</h2>
+        <ol id="steps" class="steps"></ol>
+      </section>
+
+      <section id="regional-notice" class="regional-notice" aria-labelledby="regional-title" hidden>
+        <span class="regional-ico" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/></svg>
+        </span>
+        <div class="regional-text">
+          <h2 id="regional-title">SENAPRED: aviso para toda la región</h2>
+          <p id="regional-body"></p>
+          <a href="#official">Ver alertas oficiales</a>
+        </div>
       </section>
 
       <button id="btn-protect" class="btn-primary" type="button">
@@ -92,40 +104,61 @@
         <em>«Agregar a pantalla de inicio»</em>. Abra SAT-Chile desde ese ícono y active la protección.
       </div>
 
-      <a id="link-monitor" class="link-card" href="#monitoreo">
-        <svg class="link-ico" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 15a4.5 4.5 0 1 1 1-8.9A5.5 5.5 0 0 1 18.5 8 3.5 3.5 0 0 1 18 15H7z"/><path d="M8 18.5 7 21"/><path d="M12.5 18.5 11.5 21"/><path d="M17 18.5 16 21"/></svg>
-        <span class="link-text">
-          <strong id="link-monitor-title">Ver lluvia y tormentas</strong>
-          <span id="link-monitor-sub">Pronóstico por hora y alertas</span>
-        </span>
-        <svg class="chev" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
-      </a>
-
-      <a id="cta-safe" class="cta" href="#seguro">
-        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 6.5v5.5c0 4.5 3.4 8.2 8 9 4.6-.8 8-4.5 8-9V6.5L12 3z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>
-        <span class="cta-text">
-          <strong id="cta-title">Ver mi ruta segura</strong>
-          <span id="cta-sub">Punto seguro más cercano</span>
-        </span>
-        <svg class="chev" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
-      </a>
-
-      <div class="calls">
-        <a href="tel:133" class="btn-call" aria-label="Llamar al 133, Carabineros">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>
-          133 Carabineros
+      <div class="home-actions">
+        <a id="cta-safe" class="cta" href="#seguro">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 21 3l-8 18-2-8-8-2z"/></svg>
+          <span class="cta-text">
+            <strong id="cta-title">Ver mi ruta segura</strong>
+            <span id="cta-sub">Punto seguro más cercano</span>
+          </span>
+          <svg class="chev" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
         </a>
-        <a href="tel:132" class="btn-call" aria-label="Llamar al 132, Bomberos">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>
-          132 Bomberos
-        </a>
+        <div class="quick-links">
+          <a id="link-monitor" class="quick-link" href="#monitoreo">
+            <svg class="link-ico" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 16.6A5 5 0 0 0 18 7h-1.3A8 8 0 1 0 4 15.3"/><path d="M8 19v2"/><path d="M12 17v4"/><path d="M16 19v2"/></svg>
+            <span id="link-monitor-title">Lluvia por hora</span>
+          </a>
+          <a class="quick-link" href="#reportar">
+            <svg class="link-ico" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+            Reportar crecida
+          </a>
+        </div>
       </div>
 
-      <section id="local-services" class="block" aria-labelledby="local-title" hidden>
-        <h2 id="local-title">Emergencias cerca de usted</h2>
-        <ul id="local-list" class="services"></ul>
+      <section id="official" class="card official" aria-labelledby="official-title" hidden>
+        <div class="card-head">
+          <h2 id="official-title">Alertas oficiales</h2>
+          <span id="official-count" class="card-meta"></span>
+        </div>
+        <div class="official-group">
+          <h3 class="group-label">En su comuna</h3>
+          <ul id="official-comuna" class="official-list"></ul>
+        </div>
+        <div id="official-region-group" class="official-group">
+          <h3 class="group-label">En toda la región</h3>
+          <ul id="official-region" class="official-list"></ul>
+        </div>
+        <details id="official-other" class="official-other">
+          <summary id="official-other-title">Otras amenazas en la región</summary>
+          <ul id="official-other-list" class="official-list"></ul>
+        </details>
+      </section>
+
+      <section class="card" aria-labelledby="phones-title">
+        <div class="card-head">
+          <h2 id="phones-title">Números de emergencia</h2>
+          <span class="card-meta">Toque para llamar</span>
+        </div>
+        <ul id="phones" class="phones"></ul>
+        <a id="muni-call" class="muni-call" href="#" hidden>
+          <span class="muni-text">
+            <strong id="muni-name"></strong>
+            <span id="muni-phone"></span>
+          </span>
+          <span class="muni-action">Llamar</span>
+        </a>
         <p id="muni-note" class="muted small" hidden></p>
-        <p class="muted small">Si no hay número directo, llame al 133, 132 o 131: le conectan con la central de su zona.</p>
+        <p class="muted small">Llamar funciona aunque no tenga internet.</p>
       </section>
 
       <footer class="disclaimer">
@@ -312,10 +345,10 @@
         <p class="muted small">Red hidrográfica: © OpenStreetMap contributors.</p>
       </section>
 
-      <section class="block" aria-labelledby="phones-title">
-        <h3 id="phones-title" class="h3-muted">Teléfonos de emergencia</h3>
-        <ul id="phones" class="phones"></ul>
-        <p class="muted small">Llamar funciona aunque no tenga internet.</p>
+      <section id="local-services" class="block" aria-labelledby="local-title" hidden>
+        <h3 id="local-title" class="h3-muted">Emergencias cerca de usted</h3>
+        <ul id="local-list" class="services"></ul>
+        <p class="muted small">Si no hay número directo, llame al 133, 132 o 131: le conectan con la central de su zona.</p>
       </section>
     </section>
 

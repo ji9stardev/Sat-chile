@@ -70,8 +70,13 @@ No hay librería de componentes ni Storybook. Un «componente» es **una clase C
 |---|---|---|
 | Tarjeta | `.card` (fondo `--surface`, radio 20, relleno 18) | todas las vistas |
 | Tarjeta de nivel | `.hero` + `data-threat` | Inicio |
-| Botón principal | `.btn-primary` (alto mínimo 64px, `--accent`) | acciones principales |
-| Botón secundario | `.btn-secondary`, `.btn-small`, `.btn-inline` | acciones de apoyo |
+| Encabezado de tarjeta | `.card-head` (título + `.card-meta` a la derecha) | alertas oficiales, teléfonos |
+| Botón principal | `.btn-primary` (alto mínimo 64px, `--accent`), `.cta` (ruta segura) | acciones principales |
+| Botón secundario | `.btn-secondary`, `.btn-small`, `.btn-inline`, `.quick-link` (par en `.quick-links`) | acciones de apoyo |
+| Pasos numerados | `.steps` dentro de `#steps-card` | «Qué hacer ahora» en Inicio |
+| Aviso regional | `.regional-notice` | alerta de SENAPRED para toda la región con su punto en verde |
+| Alerta oficial | `.official-item[data-level]` en grupos `.official-group` + `<details class="official-other">` | Inicio |
+| Teléfono | `.phones` (con `.phone-ico`) y `.muni-call` | Inicio |
 | Fila de lista | `.rows > .row` con `.row-text`, `.row-value` y `.level-pill[data-level]` | Monitoreo, refugios |
 | Píldora de nivel | `.level-pill[data-level="VERDE|AMARILLO|NARANJA|ROJO"]` | filas de alerta |
 | Medidor | `.gauge` (segmentos `.seg-*` + `.marker`), `.meter` | lluvia |

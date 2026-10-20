@@ -136,9 +136,12 @@ function applyLevel(level) {
 export function renderEmpty() {
   applyLevel('SIN_DATOS');
   $('hero').dataset.threat = 'SIN_DATOS';
-  $('hero-threat').textContent = 'SIN DATOS';
+  $('hero-threat').textContent = 'SU NIVEL AHORA';
+  $('hero-level').hidden = true;
   $('level-word').textContent = NO_DATA.word;
   $('level-title').textContent = NO_DATA.title;
+  renderSteps('Cómo empezar', NO_DATA.steps);
+  $('regional-notice').hidden = true;
   $('hero-facts').hidden = true;
   $('hero-meter').hidden = true;
   $('hero-updated').hidden = true;
@@ -158,11 +161,9 @@ function renderHero(d, { savedAt, stale }) {
 
   $('hero').dataset.threat = threat;
   const official = officialDriver(d);
-  $('hero-threat').textContent = threat === 'NONE'
-    ? 'SIN ALERTA · VERDE'
-    : official
-      ? `SENAPRED · ${OFFICIAL_WORDS[official.level]}`
-      : `${THREAT_LABELS[threat]} · NIVEL ${level}`;
+  $('hero-threat').textContent = threat === 'NONE' ? 'SU NIVEL AHORA' : official ? 'ALERTA DE SENAPRED' : THREAT_LABELS[threat];
+  $('hero-level').textContent = LEVELS[level]?.word ?? level;
+  $('hero-level').hidden = false;
   if (official) {
     const where = official.applies_to === 'COMUNA' ? `en ${d.area?.comuna ?? 'su comuna'}` : 'en toda la región';
     const word = (OFFICIAL_WORDS[official.level] ?? 'Alerta').toLowerCase();
@@ -171,12 +172,17 @@ function renderHero(d, { savedAt, stale }) {
   } else {
     $('level-word').textContent = text.word;
     $('level-title').textContent = text.title;
-    const regional = threat === 'NONE' ? regionalNotice(d) : null;
-    if (regional) {
-      const word = (OFFICIAL_WORDS[regional.level] ?? 'Alerta').toLowerCase();
-      $('level-title').textContent =
-        `${text.title} SENAPRED mantiene ${word} en toda la región por ${regional.hazard.toLowerCase()}: revise sus indicaciones.`;
-    }
+  }
+  renderSteps(threat === 'NONE' ? 'Para estar preparado' : 'Qué hacer ahora', text.steps);
+
+  // Alerta regional con su punto en verde: aviso aparte, sin cambiar el color de la tarjeta.
+  const regional = threat === 'NONE' ? regionalNotice(d) : null;
+  $('regional-notice').hidden = !regional;
+  if (regional) {
+    const word = (OFFICIAL_WORDS[regional.level] ?? 'Alerta').toLowerCase();
+    $('regional-body').textContent =
+      `${word.charAt(0).toUpperCase()}${word.slice(1)} por ${regional.hazard.toLowerCase()} en toda la región. ` +
+      'En su punto no se ve riesgo, pero revise sus indicaciones si va a salir.';
   }
 
   const facts = [];
@@ -197,6 +203,13 @@ function renderHero(d, { savedAt, stale }) {
     ? `Último diagnóstico guardado: ${formatTime(savedAt)} (sin conexión)`
     : `Lluvia caída + pronóstico · actualizado ${formatTime(d.evaluated_at)}`;
 
+}
+
+/** Tarjeta «Qué hacer ahora»: pasos cortos y numerados. */
+function renderSteps(title, steps) {
+  $('steps-title').textContent = title;
+  $('steps').replaceChildren(...(steps ?? []).map((step) => el('li', step)));
+  $('steps-card').hidden = !steps?.length;
 }
 
 /** Barra de "cuánto falta": sólo donde hay quebrada o ladera, que es donde aplica el umbral de lluvia. */
@@ -229,26 +242,11 @@ function renderMeter(d) {
   meter.hidden = false;
 }
 
-function probSummary(d) {
-  const p = d.probabilities;
-  if (!p) return null;
-  const parts = [
-    p.storm_pct >= 20 ? `tormenta ${p.storm_pct} %` : null,
-    p.hail_pct >= 20 ? `granizo ${p.hail_pct} %` : null,
-    p.intense_pct >= 20 ? `lluvia muy intensa ${p.intense_pct} %` : null,
-    !p.snow && p.debris_pct[0] >= 20 ? `aluvión ${p.debris_pct[0]} %` : null,
-  ].filter(Boolean);
-  return parts.length ? `Probabilidad: ${parts.join(' · ')}` : null;
-}
-
 function renderHomeLinks(d) {
   const link = $('link-monitor');
   const storm = stormLikely(d);
   link.dataset.storm = String(storm);
-  $('link-monitor-title').textContent = storm ? 'También: tormenta eléctrica' : 'Ver lluvia y tormentas';
-  $('link-monitor-sub').textContent = storm
-    ? d.storm_window ? `Posible ${formatWindow(d.storm_window.start, d.storm_window.end).toLowerCase()}` : 'Posible en las próximas 24 horas'
-    : probSummary(d) ?? 'Pronóstico por hora y alertas';
+  $('link-monitor-title').textContent = storm ? 'Tormenta posible' : 'Lluvia por hora';
 
   const urgent = severity(d.personal_risk_level) >= severity('NARANJA');
   $('cta-title').textContent = urgent ? 'Ver punto seguro cercano' : 'Ver mi ruta segura';
@@ -268,7 +266,6 @@ const OFFICIAL_WORDS = Object.freeze({
 /** Nivel de la app equivalente; la temprana preventiva informa pero no sube el nivel. */
 const OFFICIAL_TO_LEVEL = Object.freeze({ AMARILLA: 'AMARILLO', ROJA: 'ROJO' });
 
-const dateFmt = new Intl.DateTimeFormat('es-CL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
 
 /** Dónde rige una alerta oficial respecto de la comuna del usuario. */
 function officialWhere(a, d) {
@@ -278,30 +275,40 @@ function officialWhere(a, d) {
   return `Para ${a.scope || 'parte de su región'}`;
 }
 
+function officialItem(a, d) {
+  const li = el('li', null, 'official-item');
+  li.dataset.level = a.level;
+  const head = el('div', null, 'official-head');
+  head.append(el('span', OFFICIAL_WORDS[a.level] ?? a.level, 'official-badge'), el('span', relTime(a.published_at), 'official-time'));
+  li.append(head, el('strong', a.hazard), el('p', officialWhere(a, d)));
+  if (a.summary) li.append(el('p', a.summary, 'official-summary'));
+  const link = el('a', 'Ver detalle en senapred.cl');
+  link.href = a.url;
+  link.target = '_blank';
+  link.rel = 'noopener';
+  li.append(link);
+  return li;
+}
+
+/** Alertas de SENAPRED en tres grupos: su comuna, toda la región y (plegadas) otras amenazas. */
 function renderOfficial(d) {
   const alerts = d.official_alerts ?? [];
   $('official').hidden = !alerts.length;
-  $('official-list').replaceChildren(
-    ...alerts.map((a) => {
-      const li = el('li', null, 'official-item');
-      li.dataset.level = a.level;
-      const where = officialWhere(a, d);
-      li.append(
-        el('span', OFFICIAL_WORDS[a.level] ?? a.level, 'official-badge'),
-        el('strong', `${a.hazard} · ${where}`),
-      );
-      if (a.summary) li.append(el('p', a.summary));
-      const meta = el('p');
-      meta.append(`Actualizada ${dateFmt.format(new Date(a.published_at))} · `);
-      const link = el('a', 'Ver en senapred.cl');
-      link.href = a.url;
-      link.target = '_blank';
-      link.rel = 'noopener';
-      meta.append(link);
-      li.append(meta);
-      return li;
-    }),
+  if (!alerts.length) return;
+  const comuna = alerts.filter((a) => a.hydromet && a.applies_to === 'COMUNA');
+  const region = alerts.filter((a) => a.hydromet && a.applies_to !== 'COMUNA');
+  const other = alerts.filter((a) => !a.hydromet);
+  $('official-count').textContent = `SENAPRED · ${alerts.length} ${alerts.length === 1 ? 'vigente' : 'vigentes'}`;
+  $('official-comuna').replaceChildren(
+    ...(comuna.length
+      ? comuna.map((a) => officialItem(a, d))
+      : [el('li', `No hay alertas para ${d.area?.comuna ?? 'su comuna'}.`, 'official-empty')]),
   );
+  $('official-region-group').hidden = !region.length;
+  $('official-region').replaceChildren(...region.map((a) => officialItem(a, d)));
+  $('official-other').hidden = !other.length;
+  $('official-other-title').textContent = `Otras amenazas en la región (${other.length})`;
+  $('official-other-list').replaceChildren(...other.map((a) => officialItem(a, d)));
 }
 
 // ---------------------------------------------------------------- nombre del lugar
@@ -386,35 +393,29 @@ export function renderRefuges(refuges) {
 function renderLocalServices(d) {
   const services = d.emergency_services ?? [];
   const muni = d.municipal_phone;
-  $('local-services').hidden = !services.length && !muni;
-  const muniRows = [];
+  const call = $('muni-call');
+  call.hidden = !muni;
   if (muni) {
-    const li = el('li', null, 'service');
-    const text = el('span', null, 'service-text');
-    text.append(
-      el('strong', `Seguridad municipal ${muni.phone}`),
-      el('span', `Municipalidad de ${muni.comuna}${muni.verified ? '' : ' · número por confirmar'}`),
-    );
-    const call = el('a', 'Llamar', 'call');
-    call.href = `tel:${muni.phone}`;
+    call.href = `tel:${dialable(muni.phone)}`;
     call.setAttribute('aria-label', `Llamar a seguridad municipal de ${muni.comuna}, ${muni.phone}`);
-    li.append(text, call);
-    muniRows.push(li);
+    $('muni-name').textContent = `Municipalidad de ${muni.comuna} · Seguridad`;
+    $('muni-phone').textContent = muni.verified ? muni.phone : `${muni.phone} · número por confirmar`;
   }
   $('muni-note').hidden = !muni?.note;
   $('muni-note').textContent = muni?.note ?? '';
+
+  $('local-services').hidden = !services.length;
   $('local-list').replaceChildren(
-    ...muniRows,
     ...services.map((s) => {
       const li = el('li', null, 'service');
       const text = el('span', null, 'service-text');
       text.append(el('strong', s.name), el('span', `${SERVICE_KINDS[s.kind] ?? s.kind} · ${meters(s.distance_km)}`));
       li.append(text);
       if (s.phone) {
-        const call = el('a', 'Llamar', 'call');
-        call.href = `tel:${dialable(s.phone)}`;
-        call.setAttribute('aria-label', `Llamar a ${s.name}, ${s.phone}`);
-        li.append(call);
+        const callLink = el('a', 'Llamar', 'call');
+        callLink.href = `tel:${dialable(s.phone)}`;
+        callLink.setAttribute('aria-label', `Llamar a ${s.name}, ${s.phone}`);
+        li.append(callLink);
       }
       const go = el('a', 'Ir', 'go');
       go.href = directionsUrl(s.latitude, s.longitude);
@@ -1036,6 +1037,22 @@ function renderNearby(d) {
 
 // ---------------------------------------------------------------- otros
 
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+function phoneIcon() {
+  const svg = document.createElementNS(SVG_NS, 'svg');
+  for (const [k, v] of Object.entries({
+    width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor',
+    'stroke-width': 2.2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true',
+  })) svg.setAttribute(k, v);
+  const path = document.createElementNS(SVG_NS, 'path');
+  path.setAttribute('d', 'M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2');
+  svg.append(path);
+  const box = el('span', null, 'phone-ico');
+  box.append(svg);
+  return box;
+}
+
 export function renderPhones() {
   $('phones').replaceChildren(
     ...PHONES.map(({ number, who }) => {
@@ -1043,7 +1060,9 @@ export function renderPhones() {
       const link = el('a');
       link.href = `tel:${number}`;
       link.setAttribute('aria-label', `Llamar al ${number}, ${who}`);
-      link.append(el('span', number, 'num'), el('span', who, 'who'));
+      const text = el('span', null, 'phone-text');
+      text.append(el('span', number, 'num'), el('span', who, 'who'));
+      link.append(phoneIcon(), text);
       li.append(link);
       return li;
     }),
