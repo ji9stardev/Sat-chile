@@ -24,6 +24,7 @@ const SLOW_SERVER_HINT_MS = 8000;
 let lastPosition = null;
 let lastRefreshAt = 0;
 let diagnosisSeq = 0; // sólo se muestra la respuesta del último pedido
+let refugesFromMap = false; // el usuario buscó refugios en otra zona del mapa: no pisarlos al refrescar
 
 // ---------------------------------------------------------------- Service Worker
 
@@ -92,9 +93,11 @@ async function refreshDiagnosis({ position = null, silent = false } = {}) {
     save(KEYS.lastDiagnosis, { diagnosis: data, savedAt: new Date().toISOString(), manual });
     ui.renderDiagnosis(data, { manual });
     loadRegion(data);
-    loadRefuges(position);
-    showUser(position);
-    showNearby(data.nearby_watercourses, position, data.watercourse);
+    // Un refresco en segundo plano no mueve el mapa ni reemplaza lo que el usuario está mirando.
+    if (!silent || !refugesFromMap) loadRefuges(position);
+    if (!silent) refugesFromMap = false;
+    showUser(position, { recenter: !silent });
+    showNearby(data.nearby_watercourses, position, data.watercourse, { fit: !silent });
     lastRefreshAt = Date.now();
     if (!silent) ui.setStatus('protect-status', '');
   } catch (error) {
@@ -242,20 +245,26 @@ function pushMessage(result) {
 
 // ---------------------------------------------------------------- refugios y puntos de encuentro
 
+const REFUGE_RADIUS_KM = 10;
+
 async function loadRefuges(position, { fromMap = false } = {}) {
   if (!position) return;
   if (fromMap) ui.setStatus('refuge-status', 'Buscando refugios en esta zona…');
   try {
-    const { data } = await api.refuges(position.lat, position.lon, 10);
-    showRefuges(data);
+    const { data } = await api.refuges(position.lat, position.lon, REFUGE_RADIUS_KM);
+    // Sin refugios en el radio, el servidor entrega los más cercanos hasta 100 km.
+    const far = data.length > 0 && data[0].distance_km > REFUGE_RADIUS_KM;
+    showRefuges(data, { fitAround: fromMap ? position : null });
     ui.renderRefuges(data);
-    if (fromMap) {
+    if (fromMap || far) {
       ui.setStatus(
         'refuge-status',
-        data.length
-          ? `${data.length} refugios y puntos de encuentro a menos de 10 km del centro del mapa.`
-          : 'No hay refugios registrados a menos de 10 km. Mueva el mapa y busque otra vez.',
-        data.length ? 'ok' : '',
+        !data.length
+          ? 'No hay refugios ni puntos de encuentro registrados a menos de 100 km. Mueva el mapa y busque otra vez.'
+          : far
+            ? `No hay refugios registrados a menos de ${REFUGE_RADIUS_KM} km. El más cercano está a ${data[0].distance_km.toFixed(0)} km. Ante una crecida, suba a terreno alto cercano.`
+            : `${data.length} refugios y puntos de encuentro a menos de ${REFUGE_RADIUS_KM} km${fromMap ? ' del centro del mapa' : ''}.`,
+        data.length && !far ? 'ok' : '',
       );
     }
   } catch (error) {
@@ -268,6 +277,7 @@ function setupRefugeSearch() {
     const button = event.currentTarget;
     button.disabled = true;
     try {
+      refugesFromMap = true;
       await loadRefuges(mapCenter(), { fromMap: true });
     } finally {
       button.disabled = false;

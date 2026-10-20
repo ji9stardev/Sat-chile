@@ -2,10 +2,22 @@
 
 from __future__ import annotations
 
+import unicodedata
 from datetime import datetime
 from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field
+
+_HYDROMET_WORDS = (
+    "meteorolog", "lluvia", "precipitac", "frontal", "tormenta", "remocion", "aluvion",
+    "inundac", "anegamiento", "crecida", "desborde",
+)
+"""Amenazas que este sistema evalúa (lluvia, crecidas, aluviones, tormentas). Incendios, volcanes,
+sismos o emergencias sanitarias se informan, pero no cambian el nivel de crecida/aluvión."""
+
+
+def _fold(text: str) -> str:
+    return "".join(c for c in unicodedata.normalize("NFKD", text.casefold()) if not unicodedata.combining(c))
 
 
 class OfficialLevel(StrEnum):
@@ -48,3 +60,9 @@ class OfficialAlert(BaseModel):
     summary: str = ""
     published_at: datetime
     url: str
+
+    @property
+    def is_hydrometeorological(self) -> bool:
+        """La amenaza es de lluvia, crecida, aluvión o tormenta (lo que evalúa SAT-Chile)."""
+        hazard = _fold(self.hazard)
+        return any(word in hazard for word in _HYDROMET_WORDS)

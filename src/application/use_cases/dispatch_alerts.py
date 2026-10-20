@@ -3,6 +3,9 @@
 1. Destinatarios: suscriptores que siguen la zona **y** los que declararon
    una ubicación a menos de ``nearby_radius_km`` del centro de la zona,
    siempre que acepten el nivel (``min_risk_level``).
+   Una alerta de aluvión sólo llega a quien declaró una ubicación a menos de
+   ``debris_radius_km`` de una quebrada (o no declaró ubicación): avisar de
+   aluvión a todo el valle es ruido.
 2. Anti-spam: :class:`CooldownPolicy` contra el último envío por
    (suscriptor, zona). Los escalamientos pasan siempre.
 3. Mensaje adaptativo por suscriptor:
@@ -26,13 +29,17 @@ from src.domain.entities.alert import Alert
 from src.domain.entities.base import utc_now
 from src.domain.entities.geo_zone import GeoZone
 from src.domain.entities.subscriber import Subscriber
+from src.domain.entities.watercourse import WatercourseKind
+from src.domain.exceptions import ExternalDataUnavailableError
 from src.domain.repositories import (
     GeoZoneRepository,
     NotificationGateway,
     NotificationLogRepository,
     SubscriberRepository,
+    WatercourseRepository,
 )
 from src.domain.services.cooldown_policy import CooldownPolicy, NotificationDecision
+from src.domain.value_objects.threat_type import ThreatType
 from src.domain.value_objects.notification import (
     DeliveryResult,
     DeliveryStatus,
@@ -62,6 +69,8 @@ class DispatchAlertsUseCase:
         cooldown: CooldownPolicy,
         clock: Clock = utc_now,
         nearby_radius_km: float = 5.0,
+        watercourses: WatercourseRepository | None = None,
+        debris_radius_km: float = 1.0,
     ) -> None:
         self._subscribers = subscribers
         self._zones = zones
@@ -70,6 +79,8 @@ class DispatchAlertsUseCase:
         self._cooldown = cooldown
         self._clock = clock
         self._nearby_km = nearby_radius_km
+        self._watercourses = watercourses
+        self._debris_km = debris_radius_km
 
     async def execute(self, alert: Alert) -> DispatchSummary:
         """Despacha ``alert``. Si no está vigente, no envía nada."""
@@ -131,7 +142,20 @@ class DispatchAlertsUseCase:
             lookups.append(self._subscribers.find_near(zone.centroid, self._nearby_km, alert.risk_level))
         found = await asyncio.gather(*lookups)
         unique = {s.id: s for group in found for s in group if s.wants(alert.risk_level)}
+        if alert.threat_type is ThreatType.REMOCION_EN_MASA:
+            keep = await asyncio.gather(*(self._near_quebrada(s) for s in unique.values()))
+            return [s for s, ok in zip(unique.values(), keep, strict=True) if ok]
         return list(unique.values())
+
+    async def _near_quebrada(self, sub: Subscriber) -> bool:
+        """Sin ubicación declarada o sin datos de cauces se envía igual (ante la duda, avisar)."""
+        if self._watercourses is None or sub.location is None:
+            return True
+        try:
+            near = await self._watercourses.find_near(sub.location, self._debris_km, limit=50)
+        except ExternalDataUnavailableError:
+            return True
+        return any(c.kind is WatercourseKind.QUEBRADA for c in near)
 
     @staticmethod
     def _personalize(

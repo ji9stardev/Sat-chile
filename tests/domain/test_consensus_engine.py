@@ -109,19 +109,29 @@ def test_mismatched_horizons_raise(engine: ConsensusEngineService) -> None:
 # ---------------------------------------------------------------- filtro hidrológico
 
 
-def test_low_freezing_level_discards_flood(engine: ConsensusEngineService) -> None:
+def test_low_freezing_level_lowers_flood_one_level(engine: ConsensusEngineService) -> None:
     cold = HydrologicalConditions(freezing_level_m=1500, soil_moisture_m3m3=0.40)
     result = engine.evaluate(forecasts(90, 85, 80), cold)
-    assert result.outcome is ConsensusOutcome.REPORTE_TRANQUILIDAD
-    assert result.risk_level is RiskLevel.VERDE
+    assert result.outcome is ConsensusOutcome.ALERTA_DESBORDE
+    assert result.risk_level is RiskLevel.NARANJA
     assert result.raw_risk_level is RiskLevel.ROJO
     assert result.discard_reasons == (DiscardReason.ISOTERMA_BAJA,)
+    assert "rebajó" in result.summary
 
 
-def test_dry_soil_discards_flood(engine: ConsensusEngineService) -> None:
+def test_dry_soil_lowers_flood_one_level(engine: ConsensusEngineService) -> None:
     dry = HydrologicalConditions(freezing_level_m=3000, soil_moisture_m3m3=0.20)
     result = engine.evaluate(forecasts(50, 45, 42), dry)
+    assert result.outcome is ConsensusOutcome.ALERTA_DESBORDE
+    assert result.risk_level is RiskLevel.AMARILLO
+    assert result.discard_reasons == (DiscardReason.SUELO_SECO,)
+
+
+def test_dry_soil_with_moderate_rain_gives_tranquility(engine: ConsensusEngineService) -> None:
+    dry = HydrologicalConditions(freezing_level_m=3000, soil_moisture_m3m3=0.20)
+    result = engine.evaluate(forecasts(25, 24, 22), dry)
     assert result.outcome is ConsensusOutcome.REPORTE_TRANQUILIDAD
+    assert result.risk_level is RiskLevel.VERDE
     assert result.discard_reasons == (DiscardReason.SUELO_SECO,)
 
 

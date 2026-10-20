@@ -137,6 +137,11 @@ class OfficialAlertBrief(_DTO):
     applies_to: Literal["COMUNA", "TODA_REGION", "REGION"]
     """``COMUNA`` si nombra la comuna del usuario; ``TODA_REGION`` si rige en toda la región (también
     la incluye); ``REGION`` si es para provincias o zonas de la región que no se pueden confirmar."""
+    hydromet: bool = True
+    """La amenaza es de lluvia, crecida, aluvión o tormenta (lo que evalúa SAT-Chile)."""
+    sets_level: bool = False
+    """Fija el nivel personal: nombra la comuna, es de lluvia/crecida/aluvión/tormenta y es amarilla o roja.
+    Una alerta para toda la región se informa, pero no pinta de amarillo o rojo cada punto de la región."""
     summary: str
     published_at: datetime
     url: str
@@ -149,6 +154,12 @@ class OfficialAlertBrief(_DTO):
             hazard=alert.hazard,
             scope=alert.scope,
             applies_to=applies_to,
+            hydromet=alert.is_hydrometeorological,
+            sets_level=(
+                applies_to == "COMUNA"
+                and alert.is_hydrometeorological
+                and alert.level in (OfficialLevel.AMARILLA, OfficialLevel.ROJA)
+            ),
             summary=alert.summary,
             published_at=alert.published_at,
             url=alert.url,
@@ -315,6 +326,8 @@ class RainThresholds(_DTO):
     rojo_mm: float
     min_freezing_level_m: float
     intense_hourly_mm: float
+    flood_mm: tuple[float, float, float] | None = None
+    """Umbrales AMARILLO, NARANJA, ROJO de desborde (los de la fila «Lluvia intensa y desborde»)."""
 
 
 class GpsRiskDiagnosis(_DTO):

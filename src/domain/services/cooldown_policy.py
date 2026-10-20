@@ -10,7 +10,9 @@ zona, si corresponde enviar:
 * **Desescalamiento** → se envía si pasó ``min_interval`` (evita el
   "parpadeo" cuando el nivel oscila en el borde de un umbral).
 * **Mismo nivel** → sólo como recordatorio cuando vence el cooldown del
-  nivel (más corto cuanto más grave: ROJO 15 min … VERDE 12 h).
+  nivel (más corto cuanto más grave: ROJO 1 h, NARANJA 3 h; AMARILLO 12 h, es
+  decir, en la práctica sin recordatorios: un aviso preventivo no debe sonar
+  toda la noche).
 """
 
 from __future__ import annotations
@@ -25,10 +27,10 @@ from src.domain.value_objects.notification import NotificationRecord
 from src.domain.value_objects.risk_level import RiskLevel
 
 DEFAULT_COOLDOWNS: Mapping[RiskLevel, timedelta] = {
-    RiskLevel.ROJO: timedelta(minutes=15),
-    RiskLevel.NARANJA: timedelta(minutes=30),
-    RiskLevel.AMARILLO: timedelta(hours=2),
-    RiskLevel.VERDE: timedelta(hours=12),
+    RiskLevel.ROJO: timedelta(hours=1),
+    RiskLevel.NARANJA: timedelta(hours=3),
+    RiskLevel.AMARILLO: timedelta(hours=12),
+    RiskLevel.VERDE: timedelta(hours=24),
 }
 
 

@@ -8,6 +8,9 @@ let map = null;
 let groups = null;
 let userLayer = null;
 let radarKey = null;
+// La primera vez se encuadra al usuario; después sólo cuando él lo pide (no en refrescos de fondo).
+let centeredOnUser = false;
+let fittedNearby = false;
 
 function el(tag, text, className) {
   const node = document.createElement(tag);
@@ -105,8 +108,9 @@ function refugePopup(refuge) {
   return box;
 }
 
-/** Dibuja refugios y puntos de encuentro (reemplaza los anteriores). */
-export function showRefuges(refuges) {
+/** Dibuja refugios y puntos de encuentro (reemplaza los anteriores). Con ``fitAround`` encuadra ese
+ * punto y el refugio más cercano (útil cuando el más cercano está lejos y quedaría fuera de la vista). */
+export function showRefuges(refuges, { fitAround = null } = {}) {
   if (!map) return;
   groups.refuges.clearLayers();
   for (const refuge of refuges ?? []) {
@@ -124,6 +128,13 @@ export function showRefuges(refuges) {
       .bindPopup(refugePopup(refuge))
       .addTo(groups.refuges);
   }
+  const nearest = refuges?.[0];
+  if (fitAround && nearest) {
+    map.fitBounds(L.latLngBounds([[fitAround.lat, fitAround.lon], [nearest.latitude, nearest.longitude]]), {
+      padding: [40, 40],
+      maxZoom: 15,
+    });
+  }
 }
 
 /** Centro actual del mapa (para buscar en la zona que el usuario está mirando). */
@@ -133,7 +144,7 @@ export function mapCenter() {
   return { lat: center.lat, lon: center.lng };
 }
 
-export function showUser(position) {
+export function showUser(position, { recenter = true } = {}) {
   if (!map || !position) return;
   userLayer?.remove();
   userLayer = L.layerGroup([
@@ -151,7 +162,8 @@ export function showUser(position) {
       fillOpacity: 1,
     }).bindTooltip('Usted está aquí'),
   ]).addTo(map);
-  map.setView([position.lat, position.lon], 13);
+  if (recenter || !centeredOnUser) map.setView([position.lat, position.lon], 13);
+  centeredOnUser = true;
 }
 
 let nearbyLayer = null;
@@ -162,7 +174,7 @@ export function isGoverning(item, governing) {
 }
 
 /** Dibuja los cauces cercanos al usuario y encuadra el mapa en un radio de ~1,5 km. */
-export function showNearby(nearby, position, governingCourse) {
+export function showNearby(nearby, position, governingCourse, { fit = true } = {}) {
   if (!map) return;
   nearbyLayer?.remove();
   nearbyLayer = L.layerGroup();
@@ -183,7 +195,10 @@ export function showNearby(nearby, position, governingCourse) {
     userLayer.remove(); // re-agregar para que el marcador quede sobre los cauces
     userLayer.addTo(map);
   }
-  if (position) map.fitBounds(L.latLng(position.lat, position.lon).toBounds(3000));
+  if (position && (fit || !fittedNearby)) {
+    map.fitBounds(L.latLng(position.lat, position.lon).toBounds(3000));
+    fittedNearby = true;
+  }
 }
 
 /** Arma un único toque en el mapa para elegir una ubicación. Devuelve false si no hay mapa. */
